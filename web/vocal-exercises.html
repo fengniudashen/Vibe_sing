@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>声乐问题 × 练声方案 — Vibesing 高音觉醒</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06060c;--card:rgba(255,255,255,0.025);
+  --glass:rgba(255,255,255,0.035);--border:rgba(255,255,255,0.06);
+  --cyan:#00e5ff;--pink:#ff2d78;--purple:#b44aff;
+  --green:#00ff88;--yellow:#ffd700;--orange:#ff8a3d;--red:#ff3b5c;
+  --text:#e4e4f0;--dim:#5e5e74;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);overflow-x:hidden;
+}
+
+/* BG */
+.aurora{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 50% at 15% 25%,rgba(0,229,255,0.06),transparent),
+    radial-gradient(ellipse 60% 60% at 85% 75%,rgba(180,74,255,0.05),transparent),
+    radial-gradient(ellipse 70% 40% at 50% 50%,rgba(0,255,136,0.03),transparent);
+  animation:hue 18s ease-in-out infinite alternate;
+}
+@keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(15deg)}}
+
+.container{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 20px}
+
+/* HERO */
+.hero{padding:90px 0 50px;text-align:center}
+.hero-tag{
+  display:inline-block;padding:6px 18px;border-radius:50px;
+  font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;
+  border:1px solid rgba(0,255,136,0.2);color:var(--green);
+  background:rgba(0,255,136,0.06);margin-bottom:24px;
+}
+.hero h1{
+  font-size:clamp(2.2rem,5.5vw,4rem);font-weight:800;line-height:1.15;
+  margin-bottom:16px;
+  background:linear-gradient(135deg,#fff 15%,var(--green) 55%,var(--cyan) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero p{max-width:620px;margin:0 auto;color:var(--dim);font-size:1.02rem;line-height:1.7}
+
+/* LEVEL SELECTOR */
+.level-bar{
+  display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+  padding:20px 0 40px;position:sticky;top:0;z-index:50;
+  background:linear-gradient(180deg,var(--bg) 60%,transparent);
+}
+.lvl-btn{
+  padding:8px 18px;border:1px solid var(--border);border-radius:50px;
+  background:var(--glass);color:var(--dim);font-size:0.78rem;font-weight:600;
+  cursor:pointer;transition:all 0.3s;letter-spacing:0.5px;
+}
+.lvl-btn:hover,.lvl-btn.active{
+  border-color:var(--green);color:var(--green);
+  background:rgba(0,255,136,0.08);box-shadow:0 0 16px rgba(0,255,136,0.1);
+}
+
+/* PROBLEM-EXERCISE CARDS */
+.cards{display:flex;flex-direction:column;gap:28px;padding-bottom:80px}
+
+.pe-card{
+  display:grid;grid-template-columns:1fr 1fr;
+  background:var(--card);border:1px solid var(--border);border-radius:24px;
+  overflow:hidden;transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+  position:relative;
+}
+.pe-card:hover{
+  transform:translateY(-4px);border-color:rgba(255,255,255,0.1);
+  box-shadow:0 20px 60px rgba(0,0,0,0.4);
+}
+.pe-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);
+}
+
+/* LEFT: Problem */
+.pe-problem{
+  padding:32px;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+}
+.pe-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:20px;font-size:0.65rem;font-weight:700;
+  letter-spacing:0.5px;width:fit-content;margin-bottom:16px;
+}
+.pe-badge.red{background:rgba(255,59,92,0.1);color:var(--red);border:1px solid rgba(255,59,92,0.15)}
+.pe-badge.orange{background:rgba(255,138,61,0.1);color:var(--orange);border:1px solid rgba(255,138,61,0.15)}
+.pe-badge.yellow{background:rgba(255,215,0,0.1);color:var(--yellow);border:1px solid rgba(255,215,0,0.15)}
+.pe-badge.purple{background:rgba(180,74,255,0.1);color:var(--purple);border:1px solid rgba(180,74,255,0.15)}
+
+.pe-title{font-size:1.25rem;font-weight:800;margin-bottom:6px}
+.pe-en{font-size:0.72rem;color:var(--dim);margin-bottom:16px}
+.pe-desc{font-size:0.82rem;color:var(--dim);line-height:1.7;margin-bottom:18px;flex:1}
+.pe-desc strong{color:var(--text)}
+
+/* Symptoms */
+.symptoms{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.symptom{
+  font-size:0.68rem;padding:4px 10px;border-radius:8px;
+  background:rgba(255,59,92,0.06);color:rgba(255,59,92,0.7);
+  border:1px solid rgba(255,59,92,0.1);
+}
+.pe-card[data-color="orange"] .symptom{background:rgba(255,138,61,0.06);color:rgba(255,138,61,0.7);border-color:rgba(255,138,61,0.1)}
+.pe-card[data-color="yellow"] .symptom{background:rgba(255,215,0,0.06);color:rgba(255,215,0,0.7);border-color:rgba(255,215,0,0.1)}
+.pe-card[data-color="purple"] .symptom{background:rgba(180,74,255,0.06);color:rgba(180,74,255,0.7);border-color:rgba(180,74,255,0.1)}
+
+/* Danger meter */
+.danger-row{display:flex;align-items:center;gap:8px}
+.danger-label{font-size:0.68rem;color:var(--dim)}
+.danger-dots{display:flex;gap:3px}
+.danger-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(255,255,255,0.06);transition:all 0.5s;
+}
+.danger-dot.on{box-shadow:0 0 6px currentColor}
+
+/* RIGHT: Exercise */
+.pe-exercise{
+  padding:32px;display:flex;flex-direction:column;
+  background:rgba(0,255,136,0.01);
+}
+.ex-header{
+  display:flex;align-items:center;gap:10px;margin-bottom:18px;
+}
+.ex-icon{
+  width:38px;height:38px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;background:rgba(0,255,136,0.08);flex-shrink:0;
+}
+.ex-header-text h4{font-size:0.95rem;font-weight:700;color:var(--green)}
+.ex-header-text span{font-size:0.68rem;color:var(--dim)}
+
+/* Exercise steps */
+.ex-steps{display:flex;flex-direction:column;gap:12px;margin-bottom:18px;flex:1}
+.ex-step{
+  display:flex;gap:12px;padding:14px;border-radius:14px;
+  background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);
+  transition:all 0.3s;cursor:default;
+}
+.ex-step:hover{
+  background:rgba(0,255,136,0.03);border-color:rgba(0,255,136,0.1);
+  transform:translateX(4px);
+}
+.step-num{
+  width:28px;height:28px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.75rem;font-weight:800;flex-shrink:0;
+  background:rgba(0,255,136,0.1);color:var(--green);
+}
+.step-content{flex:1}
+.step-title{font-size:0.82rem;font-weight:700;margin-bottom:3px}
+.step-desc{font-size:0.72rem;color:var(--dim);line-height:1.5}
+.step-detail{
+  font-size:0.68rem;color:rgba(0,229,255,0.6);margin-top:4px;
+  font-style:italic;
+}
+
+/* Timer / difficulty */
+.ex-meta{
+  display:flex;gap:16px;flex-wrap:wrap;
+  padding-top:12px;border-top:1px solid var(--border);
+}
+.meta-item{
+  display:flex;align-items:center;gap:6px;font-size:0.7rem;color:var(--dim);
+}
+.meta-icon{font-size:0.9rem}
+
+/* Difficulty stars */
+.diff-stars{display:flex;gap:2px}
+.diff-star{width:10px;height:10px;border-radius:2px}
+.diff-star.on{background:var(--yellow);box-shadow:0 0 4px rgba(255,215,0,0.4)}
+.diff-star.off{background:rgba(255,255,255,0.06)}
+
+/* Progress ring */
+.progress-ring{
+  margin-top:14px;display:flex;align-items:center;gap:12px;
+  padding:10px 14px;border-radius:12px;
+  background:rgba(0,255,136,0.04);border:1px solid rgba(0,255,136,0.1);
+}
+.ring-svg{width:36px;height:36px;transform:rotate(-90deg);flex-shrink:0}
+.ring-bg{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:4}
+.ring-fill{
+  fill:none;stroke:var(--green);stroke-width:4;stroke-linecap:round;
+  stroke-dasharray:100;stroke-dashoffset:100;
+  transition:stroke-dashoffset 2s cubic-bezier(0.16,1,0.3,1);
+}
+.ring-text{font-size:0.72rem;color:var(--dim)}
+.ring-text strong{color:var(--green);font-weight:700}
+
+/* Responsive */
+@media(max-width:800px){
+  .pe-card{grid-template-columns:1fr}
+  .pe-problem{border-right:none;border-bottom:1px solid var(--border)}
+}
+@media(max-width:520px){
+  .hero h1{font-size:2rem}
+  .pe-problem,.pe-exercise{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora"></div>
+
+<div class="container">
+
+  <section class="hero">
+    <div class="hero-tag">🏋️ Vocal Training Prescription</div>
+    <h1>声乐问题<br>练声处方</h1>
+    <p>每个问题都有对应的练声方案。精准诊断，精准训练。像医生开处方一样，给你的嗓子开最合适的练声药方。</p>
+  </section>
+
+  <nav class="level-bar">
+    <button class="lvl-btn active" data-level="all">全部</button>
+    <button class="lvl-btn" data-level="beginner">🌱 入门级</button>
+    <button class="lvl-btn" data-level="intermediate">⚡ 进阶级</button>
+    <button class="lvl-btn" data-level="advanced">🔥 高阶级</button>
+  </nav>
+
+  <div class="cards" id="cardsContainer"></div>
+
+</div>
+
+<script>
+const DATA = [
+  {
+    level:'beginner', color:'red',
+    badge:'🔴 声门过紧', badgeClass:'red',
+    title:'挤卡 · 声带过度紧张',
+    en:'Vocal Squeeze / Glottal Hyperadduction',
+    desc:'高音时声带<strong>过度挤压</strong>，喉内肌群痉挛，声音紧绷刺耳，HNR急剧下降。这是最常见也最紧急需要纠正的声乐问题。',
+    symptoms:['高音发紧','音色刺耳','唱后喉痛','音域受限','声音疲劳'],
+    danger:5,
+    exIcon:'🧘',exTitle:'放松喉头 · 解除挤卡',exSub:'每日15分钟 · 4周见效',
+    steps:[
+      {title:'气泡音起始（Vocal Fry Start）',desc:'从最低最轻的气泡音开始，慢慢滑到舒适音区。感受声带最小张力的振动状态。',detail:'每次30秒 × 5组，重点感受喉部零压力'},
+      {title:'半闭口哼鸣（Semi-Occluded Vocal Tract）',desc:'用"M"或"NG"音哼鸣，嘴唇微闭。让气压在声道内形成反压保护声带。',detail:'从C4滑到G4，每个音保持3秒，感受面罩振动'},
+      {title:'吸管练习（Straw Phonation）',desc:'用吸管吹水（水深3-5cm）同时发音。水的阻力自动调整声门配置到最佳状态。',detail:'⚡ Titze's Straw Method — 声乐治疗金标准'},
+      {title:'叹气式下行音阶',desc:'从高音用"啊~"叹气下行，模仿打哈欠。自然降低喉位，解除喉外肌紧张。',detail:'每组5度下行 × 半音上移，上限不超过换声点'},
+    ],
+    time:'15分钟', freq:'每天', difficulty:2, progress:35,
+    tip:'训练后 Vibesing 得分每次应 > 70分',
+  },
+  {
+    level:'beginner', color:'red',
+    badge:'🔴 声门漏气', badgeClass:'red',
+    title:'漏气 · 气息声过重',
+    en:'Breathy Voice / Glottal Insufficiency',
+    desc:'声带<strong>闭合不全</strong>，大量气流未转化为声能，声音虚弱伴有明显气声。常见于紧张放松后的矫枉过正。',
+    symptoms:['声音虚弱','气息感重','唱不了长音','高音无力','投射差'],
+    danger:3,
+    exIcon:'💪',exTitle:'声带闭合训练',exSub:'每日10分钟 · 3周见效',
+    steps:[
+      {title:'清晰"嘿！"练习',desc:'短促有力地发"嘿！"，感受声带瞬间完全闭合的感觉。不是喊叫，而是干脆利落的闭合。',detail:'10次 × 3组，每次间隔1秒，保持自然音量'},
+      {title:'声门弹音（Glottal Onset）',desc:'轻柔但清晰地发"啊"起始音，确保声音一出来就是干净的，不带气声。',detail:'每个元音 a/e/i/o/u 各5次，注意第一个声波就要清晰'},
+      {title:'带阻力发声（Lip Trill）',desc:'嘟唇颤音，保持稳定的气流通过闭合的嘴唇。间接增加声门下压力。',detail:'从A3到A4上行音阶，每个音保持2拍'},
+      {title:'渐强长音练习',desc:'从PP到MF用"i"元音做渐强长音。逐渐增加声门闭合力度，但不要到挤卡。',detail:'每次6秒（2s渐强+2s保持+2s渐弱）× 8组'},
+    ],
+    time:'10分钟', freq:'每天', difficulty:1, progress:60,
+    tip:'目标: H1-H2差值 < 6dB',
+  },
+  {
+    level:'intermediate', color:'orange',
+    badge:'🟠 换声断裂', badgeClass:'orange',
+    title:'换声区破音 · Passaggio 断层',
+    en:'Register Break / Passaggio Crack',
+    desc:'胸声与头声交界处<strong>突然断裂</strong>，TA和CT肌群切换不平滑。男声E4-G4、女声E5-G5是高发区域。',
+    symptoms:['高音破音','音色突变','换声区恐惧','真假声跳跃','音量突降'],
+    danger:4,
+    exIcon:'🌉',exTitle:'换声区桥接训练',exSub:'每日20分钟 · 6周突破',
+    steps:[
+      {title:'Messa di Voce（渐强渐弱）',desc:'在换声点附近的音上做PP→FF→PP。训练TA/CT肌群在同一个音上协作，而非切换。',detail:'选换声点下方2度音，每音8拍渐强8拍渐弱'},
+      {title:'"嘘~呜"滑音连接',desc:'用"嘘(xu)"从胸声滑到头声，再用"呜(wu)"从头声滑回胸声。圆唇元音让过渡更平滑。',detail:'全程不断气，1个八度范围内来回，慢速优先'},
+      {title:'混声关键音训练',desc:'在B3-E4(男)/B4-E5(女)区间用"Mum"音做半音阶。感受胸声逐渐"变薄"而非消失。',detail:'⚡ 核心训练 — 每个音停留3秒观察Vibesing混声比'},
+      {title:'轻机能高音触达',desc:'用极轻的假声从换声点上方2度开始，逐渐加入少量胸声质感。从"薄"往"厚"加丝，不要从"厚"往上硬推',detail:'音量控制在MP以下，重点是音色连续性'},
+    ],
+    time:'20分钟', freq:'每天', difficulty:4, progress:20,
+    tip:'Vibesing 换声区稳定性 > 80分即为突破',
+  },
+  {
+    level:'beginner', color:'orange',
+    badge:'🟠 大白嗓', badgeClass:'orange',
+    title:'大白嗓 · 纯胸声硬推',
+    en:'Yelling / Untrained Belting',
+    desc:'不加任何技巧地<strong>用喊叫方式唱高音</strong>，声带全厚碰撞，声门下压力爆表。短期声音"响亮"，长期必伤声带。',
+    symptoms:['高音靠喊','声音粗糙','唱后哑声','声带结节风险','动态范围窄'],
+    danger:5,
+    exIcon:'🎭',exTitle:'健康Belting训练',exSub:'每日15分钟 · 8周重塑',
+    steps:[
+      {title:'Mix Belt基础 — "Nay"练习',desc:'用夸张的"Nay"（像嘲笑的语气）做上行音阶。这个音的舌位自然前移，帮助找到高位共鸣。',detail:'从D4开始半音上行，不超过A4(男)/D5(女)，保持"讨厌鬼"的语气'},
+      {title:'cry质感（哭腔混入）',desc:'在高音上加入轻微"哭泣"感。cry quality自动降低喉位、增加CT肌群参与，是从喊叫到混声的桥梁。',detail:'用"Wah"模仿婴儿哭声，从G4上到C5，感受喉位下降'},
+      {title:'音量递减高音',desc:'先用舒适音量到达高音，然后在同一个高音上逐渐减小音量到MP。这迫使声带从全厚切换到部分振动。',detail:'如果减不下来 = 还没有混声，需要回到上一步'},
+      {title:'Belt ↔ Head 快速切换',desc:'同一个音高上交替使用Belt质感和Head质感。训练大脑快速调度两种肌群，为混声做准备。',detail:'每个音切换4次，间隔1秒，注意Belt时不喊，Head时不虚'},
+    ],
+    time:'15分钟', freq:'每天', difficulty:3, progress:15,
+    tip:'Vibesing 紧张度评分应逐周上升',
+  },
+  {
+    level:'intermediate', color:'purple',
+    badge:'💜 混声失衡', badgeClass:'purple',
+    title:'混声不稳 · TA/CT协调差',
+    en:'Mix Voice Imbalance',
+    desc:'混声状态<strong>时有时无</strong>，音色忽明忽暗，TA/CT肌群协调精度不足。能偶尔做到但无法稳定复现。',
+    symptoms:['音色不一致','好坏看运气','长音不稳','换声区摇摆','控制感差'],
+    danger:3,
+    exIcon:'⚖️',exTitle:'混声稳定性训练',exSub:'每日20分钟 · 6周稳定',
+    steps:[
+      {title:'固定混声锚点',desc:'找到你最稳定的一个混声音（通常是换声点上方3度左右），在这个音上反复练习保持相同音色。',detail:'用"Mum"保持8拍 × 10组，每次Vibesing评分要 > 75'},
+      {title:'锚点扩展 — 半音展开',desc:'从稳定的锚点音向上下各扩展半音，每新增一个音都要保持与锚点相同的音色质感。',detail:'每周扩展1-2个半音，不求快，求稳'},
+      {title:'元音一致性训练',desc:'在同一个混声音高上，依次唱a-e-i-o-u五个元音，保持音色不变。元音变化时声门配置不动。',detail:'⚡ 超难训练 — i和u通常最容易破坏混声，重点攻克'},
+      {title:'音量动态保持',desc:'在混声状态下做PP→MP→MF→MP→PP。音量变化但混声质感不变，这是最高级的控制能力。',detail:'如果crescendo时音色突变=胸声抢入，需降低最大音量'},
+    ],
+    time:'20分钟', freq:'每天', difficulty:5, progress:10,
+    tip:'目标: Vibesing 混声比变异系数 < 10%',
+  },
+  {
+    level:'beginner', color:'yellow',
+    badge:'🟡 气息弱', badgeClass:'yellow',
+    title:'气息支撑不足',
+    en:'Weak Breath Support',
+    desc:'横膈膜和腹肌<strong>力量/控制不够</strong>，声门下压力不足以维持稳定振动。长音衰减、高音无力。',
+    symptoms:['长音唱不住','后段音弱','高音上不去','唱歌气短','声音发抖'],
+    danger:2,
+    exIcon:'🫁',exTitle:'气息控制训练',exSub:'每日10分钟 · 3周见效',
+    steps:[
+      {title:'腹式呼吸校准',desc:'平躺，腹上放书。吸气4拍（书升）→ 保持4拍 → 呼气8拍（书降）。建立横膈膜下降的正确肌肉记忆。',detail:'每组5次，做3组。站起来后复现相同感觉'},
+      {title:'"嘶——"控制呼气',desc:'发"嘶"（s音）尽可能均匀地延长。目标从15秒提升到30秒+。这训练的是呼气肌群的精确控制。',detail:'用手机计时器，每天记录最长时间，追踪进步曲线'},
+      {title:'断续呼气 — Appoggio基础',desc:'发"嘶-嘶-嘶-嘶"断续出气，每个"嘶"0.5秒，间隔0.5秒。训练腹肌的快速回弹能力。',detail:'每组20次断续 × 3组，腹部应有明显弹跳感'},
+      {title:'带阻力长音',desc:'用Lip Trill或Straw吹水，在阻力下维持长音。阻力自动调节声门下压和呼气流量的平衡。',detail:'每个音保持6拍，从A3到E4上行，追求声音零波动'},
+    ],
+    time:'10分钟', freq:'每天', difficulty:1, progress:70,
+    tip:'Vibesing 能量稳定性 > 85分',
+  },
+  {
+    level:'advanced', color:'purple',
+    badge:'💜 共鸣差', badgeClass:'purple',
+    title:'共鸣空间不足 · 喉位高',
+    en:'Insufficient Resonance / High Larynx',
+    desc:'喉头随音高上升，咽腔缩短，<strong>共鸣空间被压缩</strong>。声音尖薄无质感，缺乏歌者共振峰（Singer\'s Formant）。',
+    symptoms:['声音发白','穿透力差','高音尖细','缺乏厚度','扩音效果差'],
+    danger:3,
+    exIcon:'🏛️',exTitle:'共鸣空间扩展',exSub:'每日15分钟 · 4周改善',
+    steps:[
+      {title:'打哈欠降喉位',desc:'模仿即将打哈欠的状态（但不要真打完），感受喉头自然下沉、软腭上提。在这个位置发"啊"长音。',detail:'用手指轻触喉结感受位置变化，每次保持5秒 × 10组'},
+      {title:'"Gug"降喉位发声',desc:'用"Gug"（类似漱口）做音阶。G辅音强制舌根后缩，自然创造更大的咽腔空间。',detail:'从C4到G4上行，每个音做2次Gug，感受"空间感"'},
+      {title:'窄元音→宽共鸣（Cover训练）',desc:'在高音上把"ah"的感觉往"oh"方向调整（cover/掩盖）。嘴型不变但内部空间加大，保持喉位稳定。',detail:'⚡ Bel Canto核心技术 — "啊"变"嗷"的内部变化'},
+      {title:'胸腔共鸣激活',desc:'手贴胸口，用低沉的"嗡(Ong)"音感受胸腔振动。然后逐渐升高音调保持相同振动感。',detail:'能在E4以上仍感受到胸腔振动=胸声混入成功'},
+    ],
+    time:'15分钟', freq:'每天', difficulty:4, progress:25,
+    tip:'Vibesing 检测 Singer\'s Formant 出现即为成功',
+  },
+  {
+    level:'advanced', color:'yellow',
+    badge:'🟡 抖音控制', badgeClass:'yellow',
+    title:'颤音失控 · Vibrato异常',
+    en:'Wobble / Tremolo / Absent Vibrato',
+    desc:'颤音<strong>过快（tremolo > 7Hz）、过慢（wobble < 4Hz）或完全缺失</strong>。健康vibrato应为5-6.5Hz、±0.5-1半音。',
+    symptoms:['声音发抖','颤音过大','没有颤音','声音僵硬','长音不自然'],
+    danger:2,
+    exIcon:'〰️',exTitle:'Vibrato 精调训练',exSub:'每日10分钟 · 4周改善',
+    steps:[
+      {title:'手动脉冲训练（无颤音者）',desc:'唱长音时用手轻压腹部，每秒约6次有节奏地施加微弱脉冲。让身体学习vibrato的肌肉运动模式。',detail:'用节拍器设96BPM，每拍1.5次脉冲，≈6Hz'},
+      {title:'从气流颤音到喉部颤音',desc:'先做"ha-ha-ha-ha"急速呼气（约6Hz），然后逐渐让声带接管这个波动，变成真正的vibrato。',detail:'每组10秒 × 5组，从有意识到无意识的过渡'},
+      {title:'Straight Tone控制（颤音过大者）',desc:'刻意练习完全没有颤音的直音（straight tone）。这训练你"关闭"vibrato的能力，即精确控制能力。',detail:'每个音保持4拍直音+4拍释放vibrato，体会切换控制'},
+      {title:'速率微调',desc:'在长音上有意识地加快或减慢vibrato速率。目标是能在4-7Hz范围内随意控制，最终稳定在5.5-6Hz。',detail:'⚡ 高阶技巧 — 需要极好的本体感觉和肌肉控制'},
+    ],
+    time:'10分钟', freq:'每天', difficulty:3, progress:40,
+    tip:'Vibesing F0变异率 5.5-6.5Hz = 完美vibrato',
+  },
+];
+
+function renderCards(level='all'){
+  const box = document.getElementById('cardsContainer');
+  box.innerHTML = '';
+  const filtered = level === 'all' ? DATA : DATA.filter(d => d.level === level);
+
+  filtered.forEach((d, i) => {
+    const card = document.createElement('div');
+    card.className = 'pe-card';
+    card.dataset.color = d.color;
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(24px)';
+
+    // Danger dots
+    const dots = Array.from({length:5}, (_,j) => {
+      const on = j < d.danger;
+      const colors = {red:'var(--red)',orange:'var(--orange)',yellow:'var(--yellow)',purple:'var(--purple)'};
+      return `<div class="danger-dot ${on?'on':''}" style="${on?`background:${colors[d.color]};`:''}"></div>`;
+    }).join('');
+
+    // Difficulty stars
+    const stars = Array.from({length:5}, (_,j) =>
+      `<div class="diff-star ${j<d.difficulty?'on':'off'}"></div>`
+    ).join('');
+
+    // Progress ring offset
+    const circumference = 2 * Math.PI * 15; // r=15
+    const offset = circumference * (1 - d.progress / 100);
+
+    card.innerHTML = `
+      <div class="pe-problem">
+        <div class="pe-badge ${d.badgeClass}">${d.badge}</div>
+        <div class="pe-title">${d.title}</div>
+        <div class="pe-en">${d.en}</div>
+        <div class="pe-desc">${d.desc}</div>
+        <div class="symptoms">${d.symptoms.map(s=>`<span class="symptom">${s}</span>`).join('')}</div>
+        <div class="danger-row">
+          <span class="danger-label">危险度</span>
+          <div class="danger-dots">${dots}</div>
+        </div>
+      </div>
+      <div class="pe-exercise">
+        <div class="ex-header">
+          <div class="ex-icon">${d.exIcon}</div>
+          <div class="ex-header-text">
+            <h4>${d.exTitle}</h4>
+            <span>${d.exSub}</span>
+          </div>
+        </div>
+        <div class="ex-steps">
+          ${d.steps.map((s,j) => `
+            <div class="ex-step">
+              <div class="step-num">${j+1}</div>
+              <div class="step-content">
+                <div class="step-title">${s.title}</div>
+                <div class="step-desc">${s.desc}</div>
+                <div class="step-detail">${s.detail}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="ex-meta">
+          <div class="meta-item"><span class="meta-icon">⏱️</span>${d.time}</div>
+          <div class="meta-item"><span class="meta-icon">📅</span>${d.freq}</div>
+          <div class="meta-item"><span class="meta-icon">⭐</span><div class="diff-stars">${stars}</div></div>
+        </div>
+        <div class="progress-ring">
+          <svg class="ring-svg" viewBox="0 0 36 36">
+            <circle class="ring-bg" cx="18" cy="18" r="15"/>
+            <circle class="ring-fill" cx="18" cy="18" r="15"
+              stroke-dasharray="${circumference.toFixed(1)}"
+              data-offset="${offset.toFixed(1)}"
+              stroke-dashoffset="${circumference.toFixed(1)}"/>
+          </svg>
+          <div class="ring-text">
+            <strong>${d.progress}%</strong> 用户通过此训练改善<br>
+            <span style="font-size:0.65rem;opacity:0.7">${d.tip}</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    box.appendChild(card);
+
+    // Animate in
+    setTimeout(() => {
+      card.style.transition = 'all 0.6s cubic-bezier(0.16,1,0.3,1)';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, i * 100);
+
+    // Animate progress ring on scroll
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if(e.isIntersecting) {
+          const ring = e.target.querySelector('.ring-fill');
+          if(ring) ring.style.strokeDashoffset = ring.dataset.offset;
+          observer.unobserve(e.target);
+        }
+      });
+    }, {threshold:0.2});
+    observer.observe(card);
+  });
+}
+
+// Level filter
+document.querySelectorAll('.lvl-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.lvl-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCards(btn.dataset.level);
+  });
+});
+
+renderCards();
+</script>
+
+</body>
+</html>
