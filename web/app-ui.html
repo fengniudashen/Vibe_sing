@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibesing 高音觉醒 — Vocal Diagnosis</title>
+<style>
+/* ========== RESET & BASE ========== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;--card:#13131a;--glass:rgba(255,255,255,0.04);
+  --neon-cyan:#00f0ff;--neon-pink:#ff2d78;--neon-purple:#a855f7;
+  --neon-green:#00ff88;--neon-yellow:#ffd700;--neon-orange:#ff6b35;
+  --text:#e8e8f0;--text-dim:#6b6b80;
+  --perfect:#00ff88;--good:#00f0ff;--passed:#ffd700;--failed:#ff2d78;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);overflow-x:hidden;
+  min-height:100vh;
+}
+
+/* ========== ANIMATED BACKGROUND ========== */
+.bg-aurora{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 30%,rgba(0,240,255,0.08),transparent),
+    radial-gradient(ellipse 60% 50% at 80% 70%,rgba(168,85,247,0.06),transparent),
+    radial-gradient(ellipse 70% 40% at 50% 50%,rgba(255,45,120,0.04),transparent);
+  animation:auroraShift 12s ease-in-out infinite alternate;
+}
+@keyframes auroraShift{
+  0%{filter:hue-rotate(0deg)}
+  100%{filter:hue-rotate(30deg)}
+}
+
+/* Floating particles */
+.particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.particle{
+  position:absolute;width:3px;height:3px;border-radius:50%;
+  animation:particleFloat linear infinite;opacity:0;
+}
+@keyframes particleFloat{
+  0%{transform:translateY(100vh) scale(0);opacity:0}
+  10%{opacity:1}
+  90%{opacity:1}
+  100%{transform:translateY(-10vh) scale(1);opacity:0}
+}
+
+/* ========== LAYOUT ========== */
+.app-container{
+  position:relative;z-index:1;
+  max-width:1400px;margin:0 auto;padding:30px 20px;
+}
+
+/* ========== HERO SECTION ========== */
+.hero{
+  text-align:center;padding:60px 0 40px;
+  position:relative;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,rgba(0,240,255,0.15),rgba(168,85,247,0.15));
+  border:1px solid rgba(0,240,255,0.2);border-radius:50px;
+  padding:8px 20px;font-size:0.8rem;letter-spacing:2px;text-transform:uppercase;
+  color:var(--neon-cyan);margin-bottom:24px;
+  animation:badgePulse 3s ease-in-out infinite;
+}
+@keyframes badgePulse{
+  0%,100%{box-shadow:0 0 20px rgba(0,240,255,0.1)}
+  50%{box-shadow:0 0 30px rgba(0,240,255,0.25)}
+}
+.hero h1{
+  font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;
+  letter-spacing:-1px;line-height:1.1;margin-bottom:16px;
+  background:linear-gradient(135deg,#fff 0%,var(--neon-cyan) 50%,var(--neon-purple) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero p{
+  font-size:1.1rem;color:var(--text-dim);max-width:600px;margin:0 auto 32px;
+  line-height:1.6;
+}
+
+/* ========== PHONE MOCKUP ========== */
+.demo-section{
+  display:flex;justify-content:center;align-items:flex-start;
+  gap:60px;flex-wrap:wrap;padding:40px 0;
+}
+.phone-frame{
+  width:320px;height:640px;
+  background:var(--card);border-radius:40px;
+  border:3px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 60px rgba(0,240,255,0.08),
+              0 20px 60px rgba(0,0,0,0.5),
+              inset 0 1px 0 rgba(255,255,255,0.05);
+  position:relative;overflow:hidden;
+  flex-shrink:0;
+}
+.phone-notch{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:120px;height:28px;background:#000;border-radius:0 0 20px 20px;
+  z-index:10;
+}
+.phone-screen{
+  width:100%;height:100%;padding:40px 20px 20px;
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;overflow:hidden;
+}
+
+/* Live waveform in phone */
+.wave-container{
+  width:100%;height:80px;margin:20px 0 10px;position:relative;
+}
+.wave-canvas{width:100%;height:100%}
+
+/* Score ring */
+.score-ring-wrap{
+  position:relative;width:160px;height:160px;margin:10px 0;
+}
+.score-ring{width:160px;height:160px;transform:rotate(-90deg)}
+.score-ring-bg{fill:none;stroke:rgba(255,255,255,0.05);stroke-width:8}
+.score-ring-fill{
+  fill:none;stroke:var(--neon-green);stroke-width:8;
+  stroke-linecap:round;stroke-dasharray:440;stroke-dashoffset:440;
+  transition:stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1),
+             stroke 0.5s ease;
+  filter:drop-shadow(0 0 8px currentColor);
+}
+.score-number{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.score-value{
+  font-size:3rem;font-weight:900;line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.score-label{font-size:0.7rem;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+
+/* Judgment burst */
+.judgment{
+  font-size:2.2rem;font-weight:900;letter-spacing:3px;
+  text-transform:uppercase;opacity:0;
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(2);
+  text-shadow:0 0 30px currentColor,0 0 60px currentColor;
+  pointer-events:none;z-index:20;
+  animation:none;
+}
+.judgment.show{animation:judgmentBurst 1.2s cubic-bezier(0.16,1,0.3,1) forwards}
+@keyframes judgmentBurst{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(2.5) rotate(-5deg)}
+  20%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
+  40%{transform:translate(-50%,-50%) scale(1.05)}
+  70%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(0.95) translateY(-30px)}
+}
+
+/* Feature bars in phone */
+.feature-bars{
+  width:100%;display:flex;flex-direction:column;gap:8px;
+  margin-top:auto;
+}
+.feature-row{
+  display:flex;align-items:center;gap:8px;font-size:0.72rem;
+}
+.feature-label{
+  width:40px;text-align:right;color:var(--text-dim);
+  font-weight:600;letter-spacing:0.5px;
+}
+.feature-track{
+  flex:1;height:6px;background:rgba(255,255,255,0.06);
+  border-radius:3px;overflow:hidden;
+}
+.feature-fill{
+  height:100%;border-radius:3px;
+  transition:width 0.4s ease,background 0.4s ease;
+  box-shadow:0 0 8px rgba(0,240,255,0.3);
+}
+.feature-val{
+  width:36px;font-size:0.7rem;font-variant-numeric:tabular-nums;
+  color:var(--text-dim);
+}
+
+/* Phone bottom buttons */
+.phone-actions{
+  display:flex;gap:10px;margin-top:12px;width:100%;
+}
+.btn-phone{
+  flex:1;padding:10px;border:none;border-radius:12px;
+  font-size:0.75rem;font-weight:700;cursor:pointer;
+  letter-spacing:0.5px;transition:all 0.3s;
+}
+.btn-start{
+  background:linear-gradient(135deg,var(--neon-cyan),var(--neon-purple));
+  color:#000;
+}
+.btn-start:hover{transform:scale(1.02);box-shadow:0 0 20px rgba(0,240,255,0.3)}
+.btn-feedback{
+  background:rgba(255,255,255,0.06);color:var(--text);
+  border:1px solid rgba(255,255,255,0.08);
+}
+.btn-feedback:hover{background:rgba(255,255,255,0.1)}
+
+/* ========== SIDE PANEL — JUDGMENT HISTORY ========== */
+.side-panel{
+  width:420px;display:flex;flex-direction:column;gap:20px;
+}
+.panel-title{
+  font-size:1.3rem;font-weight:700;
+  display:flex;align-items:center;gap:10px;
+}
+.panel-title::before{
+  content:'';width:4px;height:20px;border-radius:2px;
+  background:linear-gradient(var(--neon-cyan),var(--neon-purple));
+}
+
+/* History cards */
+.history-list{display:flex;flex-direction:column;gap:10px}
+.history-card{
+  background:var(--glass);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:16px;padding:16px 20px;
+  display:flex;align-items:center;gap:16px;
+  transition:all 0.3s;position:relative;overflow:hidden;
+}
+.history-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  border-radius:0 2px 2px 0;
+}
+.history-card.perfect::before{background:var(--perfect)}
+.history-card.good::before{background:var(--good)}
+.history-card.passed::before{background:var(--passed)}
+.history-card.failed::before{background:var(--failed)}
+.history-card:hover{
+  background:rgba(255,255,255,0.06);
+  transform:translateX(4px);
+}
+.hc-rank{
+  font-size:1.8rem;font-weight:900;width:50px;text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+.hc-rank.perfect{color:var(--perfect)}
+.hc-rank.good{color:var(--good)}
+.hc-rank.passed{color:var(--passed)}
+.hc-rank.failed{color:var(--failed)}
+
+.hc-info{flex:1}
+.hc-title{font-weight:600;font-size:0.9rem;margin-bottom:3px}
+.hc-detail{font-size:0.75rem;color:var(--text-dim)}
+
+.hc-badge{
+  padding:5px 12px;border-radius:20px;font-size:0.7rem;
+  font-weight:800;letter-spacing:1px;text-transform:uppercase;
+}
+.hc-badge.perfect{background:rgba(0,255,136,0.12);color:var(--perfect);border:1px solid rgba(0,255,136,0.2)}
+.hc-badge.good{background:rgba(0,240,255,0.12);color:var(--good);border:1px solid rgba(0,240,255,0.2)}
+.hc-badge.passed{background:rgba(255,215,0,0.12);color:var(--passed);border:1px solid rgba(255,215,0,0.2)}
+.hc-badge.failed{background:rgba(255,45,120,0.12);color:var(--failed);border:1px solid rgba(255,45,120,0.2)}
+
+/* ========== JUDGMENT SHOWCASE ========== */
+.showcase-section{
+  padding:80px 0;text-align:center;
+}
+.showcase-section h2{
+  font-size:2.2rem;font-weight:800;margin-bottom:12px;
+  background:linear-gradient(135deg,#fff,var(--neon-cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.showcase-section p{color:var(--text-dim);margin-bottom:50px;font-size:1rem}
+
+.judgment-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:20px;max-width:1100px;margin:0 auto;
+}
+.j-card{
+  border-radius:24px;padding:40px 24px;
+  position:relative;overflow:hidden;cursor:pointer;
+  transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+  border:1px solid transparent;
+}
+.j-card:hover{transform:translateY(-8px) scale(1.02)}
+.j-card::before{
+  content:'';position:absolute;inset:0;opacity:0.07;
+  transition:opacity 0.4s;
+}
+.j-card:hover::before{opacity:0.12}
+
+.j-card.perfect{background:rgba(0,255,136,0.04);border-color:rgba(0,255,136,0.15)}
+.j-card.perfect::before{background:radial-gradient(circle at 50% 0%,var(--perfect),transparent 70%)}
+.j-card.perfect:hover{box-shadow:0 0 40px rgba(0,255,136,0.1)}
+
+.j-card.good{background:rgba(0,240,255,0.04);border-color:rgba(0,240,255,0.15)}
+.j-card.good::before{background:radial-gradient(circle at 50% 0%,var(--good),transparent 70%)}
+.j-card.good:hover{box-shadow:0 0 40px rgba(0,240,255,0.1)}
+
+.j-card.passed{background:rgba(255,215,0,0.04);border-color:rgba(255,215,0,0.15)}
+.j-card.passed::before{background:radial-gradient(circle at 50% 0%,var(--passed),transparent 70%)}
+.j-card.passed:hover{box-shadow:0 0 40px rgba(255,215,0,0.1)}
+
+.j-card.failed{background:rgba(255,45,120,0.04);border-color:rgba(255,45,120,0.15)}
+.j-card.failed::before{background:radial-gradient(circle at 50% 0%,var(--failed),transparent 70%)}
+.j-card.failed:hover{box-shadow:0 0 40px rgba(255,45,120,0.1)}
+
+.j-icon{font-size:3rem;margin-bottom:16px}
+.j-title{
+  font-size:1.8rem;font-weight:900;letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.j-card.perfect .j-title{color:var(--perfect)}
+.j-card.good .j-title{color:var(--good)}
+.j-card.passed .j-title{color:var(--passed)}
+.j-card.failed .j-title{color:var(--failed)}
+
+.j-range{font-size:0.85rem;color:var(--text-dim);margin-bottom:12px}
+.j-desc{font-size:0.8rem;color:var(--text-dim);line-height:1.5;opacity:0.8}
+
+/* Judgment click animation overlay */
+.j-card-burst{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.j-card-burst span{
+  font-size:2.5rem;font-weight:900;letter-spacing:4px;
+  opacity:0;transform:scale(0);
+}
+
+/* ========== DIAGNOSIS CARDS ========== */
+.diagnosis-section{
+  padding:60px 0;
+}
+.diagnosis-section h2{
+  font-size:2rem;font-weight:800;margin-bottom:40px;text-align:center;
+  background:linear-gradient(135deg,#fff,var(--neon-pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.diagnosis-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:16px;
+}
+.d-card{
+  background:var(--glass);border:1px solid rgba(255,255,255,0.06);
+  border-radius:20px;padding:24px;
+  transition:all 0.3s;position:relative;overflow:hidden;
+}
+.d-card:hover{
+  transform:translateY(-4px);
+  border-color:rgba(255,255,255,0.12);
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+.d-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.d-icon{
+  width:42px;height:42px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;flex-shrink:0;
+}
+.d-title{font-size:1rem;font-weight:700}
+.d-subtitle{font-size:0.7rem;color:var(--text-dim);margin-top:2px}
+
+.d-meter{
+  display:flex;align-items:center;gap:10px;margin-bottom:10px;
+}
+.d-meter-track{
+  flex:1;height:8px;background:rgba(255,255,255,0.06);
+  border-radius:4px;overflow:hidden;position:relative;
+}
+.d-meter-fill{
+  height:100%;border-radius:4px;
+  transition:width 1.5s cubic-bezier(0.16,1,0.3,1);
+  position:relative;
+}
+.d-meter-fill::after{
+  content:'';position:absolute;right:0;top:-2px;bottom:-2px;width:4px;
+  background:#fff;border-radius:2px;
+  box-shadow:0 0 8px currentColor;
+}
+.d-score{
+  font-size:1.2rem;font-weight:800;font-variant-numeric:tabular-nums;
+  min-width:36px;text-align:right;
+}
+
+.d-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.d-tag{
+  font-size:0.65rem;padding:3px 8px;border-radius:6px;
+  background:rgba(255,255,255,0.04);color:var(--text-dim);
+  border:1px solid rgba(255,255,255,0.06);
+}
+
+/* Color themes for diagnosis cards */
+.d-card.tension .d-icon{background:rgba(255,45,120,0.12)}
+.d-card.tension .d-meter-fill{background:linear-gradient(90deg,var(--neon-green),var(--neon-pink))}
+.d-card.tension .d-score{color:var(--neon-pink)}
+
+.d-card.mix .d-icon{background:rgba(168,85,247,0.12)}
+.d-card.mix .d-meter-fill{background:linear-gradient(90deg,var(--neon-orange),var(--neon-purple))}
+.d-card.mix .d-score{color:var(--neon-purple)}
+
+.d-card.stability .d-icon{background:rgba(0,240,255,0.12)}
+.d-card.stability .d-meter-fill{background:linear-gradient(90deg,var(--neon-yellow),var(--neon-cyan))}
+.d-card.stability .d-score{color:var(--neon-cyan)}
+
+.d-card.breath .d-icon{background:rgba(0,255,136,0.12)}
+.d-card.breath .d-meter-fill{background:linear-gradient(90deg,var(--neon-orange),var(--neon-green))}
+.d-card.breath .d-score{color:var(--neon-green)}
+
+.d-card.energy .d-icon{background:rgba(255,215,0,0.12)}
+.d-card.energy .d-meter-fill{background:linear-gradient(90deg,var(--neon-pink),var(--neon-yellow))}
+.d-card.energy .d-score{color:var(--neon-yellow)}
+
+/* ========== STREAK & COMBO ========== */
+.stats-bar{
+  display:flex;justify-content:center;gap:40px;padding:30px 0;
+  flex-wrap:wrap;
+}
+.stat-item{
+  text-align:center;
+  background:var(--glass);border:1px solid rgba(255,255,255,0.06);
+  border-radius:20px;padding:24px 32px;min-width:140px;
+  transition:all 0.3s;
+}
+.stat-item:hover{
+  transform:translateY(-4px);
+  border-color:rgba(0,240,255,0.2);
+  box-shadow:0 0 20px rgba(0,240,255,0.05);
+}
+.stat-value{
+  font-size:2.5rem;font-weight:900;
+  font-variant-numeric:tabular-nums;
+  line-height:1;margin-bottom:8px;
+}
+.stat-value.cyan{color:var(--neon-cyan)}
+.stat-value.green{color:var(--neon-green)}
+.stat-value.purple{color:var(--neon-purple)}
+.stat-value.yellow{color:var(--neon-yellow)}
+.stat-label{font-size:0.75rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase}
+
+/* ========== SHARE CARD ========== */
+.share-section{
+  padding:60px 0;text-align:center;
+}
+.share-card{
+  max-width:500px;margin:0 auto;
+  background:linear-gradient(145deg,rgba(0,240,255,0.06),rgba(168,85,247,0.06));
+  border:1px solid rgba(0,240,255,0.15);
+  border-radius:28px;padding:40px 32px;
+  position:relative;overflow:hidden;
+}
+.share-card::before{
+  content:'';position:absolute;top:-50%;right:-50%;
+  width:200%;height:200%;
+  background:conic-gradient(from 0deg,transparent,rgba(0,240,255,0.08),transparent,rgba(168,85,247,0.08),transparent);
+  animation:shareRotate 8s linear infinite;
+}
+@keyframes shareRotate{to{transform:rotate(360deg)}}
+.share-content{position:relative;z-index:1}
+.share-score{
+  font-size:5rem;font-weight:900;line-height:1;
+  background:linear-gradient(135deg,var(--neon-cyan),var(--neon-purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.share-rank{
+  font-size:1.5rem;font-weight:800;letter-spacing:4px;
+  margin:8px 0 16px;color:var(--neon-green);
+}
+.share-dims{
+  display:flex;justify-content:center;gap:20px;margin:20px 0;
+  flex-wrap:wrap;
+}
+.share-dim{text-align:center}
+.share-dim-val{font-size:1.2rem;font-weight:700;color:var(--neon-cyan)}
+.share-dim-label{font-size:0.65rem;color:var(--text-dim);margin-top:2px}
+.share-branding{
+  font-size:0.75rem;color:var(--text-dim);margin-top:20px;
+  letter-spacing:2px;
+}
+.share-branding span{color:var(--neon-cyan)}
+
+.btn-share{
+  display:inline-flex;align-items:center;gap:8px;
+  margin-top:24px;padding:14px 32px;border:none;border-radius:50px;
+  background:linear-gradient(135deg,var(--neon-cyan),var(--neon-purple));
+  color:#000;font-weight:800;font-size:0.9rem;cursor:pointer;
+  letter-spacing:1px;transition:all 0.3s;
+}
+.btn-share:hover{
+  transform:scale(1.05);
+  box-shadow:0 0 30px rgba(0,240,255,0.3);
+}
+
+/* ========== COMBO COUNTER ========== */
+.combo-display{
+  position:fixed;top:20px;right:20px;z-index:100;
+  text-align:right;pointer-events:none;
+}
+.combo-number{
+  font-size:3rem;font-weight:900;color:var(--neon-yellow);
+  text-shadow:0 0 20px rgba(255,215,0,0.5);
+  line-height:1;
+  transition:all 0.2s;
+  font-variant-numeric:tabular-nums;
+}
+.combo-label{
+  font-size:0.7rem;letter-spacing:3px;color:var(--neon-yellow);
+  text-transform:uppercase;opacity:0.7;
+}
+.combo-display.burst .combo-number{
+  animation:comboBurst 0.3s ease-out;
+}
+@keyframes comboBurst{
+  0%{transform:scale(1.4)}
+  100%{transform:scale(1)}
+}
+
+/* ========== RESPONSIVE ========== */
+@media(max-width:900px){
+  .demo-section{flex-direction:column;align-items:center}
+  .side-panel{width:100%;max-width:420px}
+  .judgment-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:520px){
+  .hero h1{font-size:2rem}
+  .phone-frame{width:280px;height:560px}
+  .judgment-grid{grid-template-columns:1fr 1fr}
+  .j-title{font-size:1.2rem}
+  .stats-bar{gap:12px}
+  .stat-item{padding:16px 20px;min-width:100px}
+  .stat-value{font-size:1.8rem}
+  .share-score{font-size:3.5rem}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-aurora"></div>
+<div class="particles" id="particles"></div>
+
+<!-- Combo display -->
+<div class="combo-display" id="comboDisplay" style="opacity:0">
+  <div class="combo-number" id="comboNumber">0</div>
+  <div class="combo-label">COMBO</div>
+</div>
+
+<div class="app-container">
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span style="font-size:1rem">🎤</span>
+      <span>Real-time Vocal AI</span>
+    </div>
+    <h1>高音觉醒<br>Vibesing</h1>
+    <p>实时声乐诊断 · 像音游一样练声 · AI 教练在你耳边</p>
+  </section>
+
+  <!-- ===== STATS BAR ===== -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-value cyan" id="statScore">0</div>
+      <div class="stat-label">综合得分</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value green" id="statPerfect">0</div>
+      <div class="stat-label">Perfect</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value purple" id="statCombo">0</div>
+      <div class="stat-label">Max Combo</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value yellow" id="statAccuracy">0%</div>
+      <div class="stat-label">准确率</div>
+    </div>
+  </div>
+
+  <!-- ===== DEMO: PHONE + HISTORY ===== -->
+  <section class="demo-section">
+
+    <!-- Phone mockup -->
+    <div class="phone-frame" id="phoneFrame">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <!-- Status indicator -->
+        <div style="font-size:0.7rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">
+          <span id="phoneStatus" style="color:var(--neon-green)">● LISTENING</span>
+        </div>
+
+        <!-- Waveform -->
+        <div class="wave-container">
+          <canvas class="wave-canvas" id="waveCanvas"></canvas>
+        </div>
+
+        <!-- Score ring -->
+        <div class="score-ring-wrap">
+          <svg class="score-ring" viewBox="0 0 160 160">
+            <circle class="score-ring-bg" cx="80" cy="80" r="70"/>
+            <circle class="score-ring-fill" id="scoreRingFill" cx="80" cy="80" r="70"/>
+          </svg>
+          <div class="score-number">
+            <div class="score-value" id="scoreValue">0</div>
+            <div class="score-label">VOCAL SCORE</div>
+          </div>
+          <!-- Judgment text overlay -->
+          <div class="judgment" id="judgment"></div>
+        </div>
+
+        <!-- Feature bars -->
+        <div class="feature-bars">
+          <div class="feature-row">
+            <span class="feature-label">HNR</span>
+            <div class="feature-track"><div class="feature-fill" id="barHNR" style="width:0%;background:var(--neon-cyan)"></div></div>
+            <span class="feature-val" id="valHNR">—</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-label">F0</span>
+            <div class="feature-track"><div class="feature-fill" id="barF0" style="width:0%;background:var(--neon-purple)"></div></div>
+            <span class="feature-val" id="valF0">—</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-label">能量</span>
+            <div class="feature-track"><div class="feature-fill" id="barEnergy" style="width:0%;background:var(--neon-green)"></div></div>
+            <span class="feature-val" id="valEnergy">—</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-label">混声</span>
+            <div class="feature-track"><div class="feature-fill" id="barMix" style="width:0%;background:var(--neon-yellow)"></div></div>
+            <span class="feature-val" id="valMix">—</span>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="phone-actions">
+          <button class="btn-phone btn-start" id="btnStart" onclick="toggleSimulation()">开始练声</button>
+          <button class="btn-phone btn-feedback" onclick="showFeedback()">准吗? 🤔</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side panel: history -->
+    <div class="side-panel">
+      <div class="panel-title">实时诊断记录</div>
+      <div class="history-list" id="historyList">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ===== JUDGMENT SHOWCASE ===== -->
+  <section class="showcase-section">
+    <h2>音游级评判系统</h2>
+    <p>每一帧声音都在被评判，像节奏游戏一样给你即时反馈</p>
+    <div class="judgment-grid">
+      <div class="j-card perfect" onclick="clickJudgment(this,'PERFECT')">
+        <div class="j-icon">✨</div>
+        <div class="j-title">PERFECT!</div>
+        <div class="j-range">90 — 100 分</div>
+        <div class="j-desc">声带放松、共鸣通畅、气息稳定<br>这就是最佳发声状态</div>
+        <div class="j-card-burst"><span style="color:var(--perfect)">PERFECT!</span></div>
+      </div>
+      <div class="j-card good" onclick="clickJudgment(this,'GOOD!')">
+        <div class="j-icon">🎯</div>
+        <div class="j-title">GOOD!</div>
+        <div class="j-range">70 — 89 分</div>
+        <div class="j-desc">发声基本正确，轻微紧张<br>稍微放松一点就能 PERFECT</div>
+        <div class="j-card-burst"><span style="color:var(--good)">GOOD!</span></div>
+      </div>
+      <div class="j-card passed" onclick="clickJudgment(this,'PASS')">
+        <div class="j-icon">⚡</div>
+        <div class="j-title">PASSED</div>
+        <div class="j-range">50 — 69 分</div>
+        <div class="j-desc">声带有些紧张，共鸣受限<br>需要注意放松喉头</div>
+        <div class="j-card-burst"><span style="color:var(--passed)">PASSED</span></div>
+      </div>
+      <div class="j-card failed" onclick="clickJudgment(this,'FAILED')">
+        <div class="j-icon">💥</div>
+        <div class="j-title">FAILED</div>
+        <div class="j-range">0 — 49 分</div>
+        <div class="j-desc">严重挤卡！声带过度紧张<br>停下来深呼吸，重新开始</div>
+        <div class="j-card-burst"><span style="color:var(--failed)">FAILED</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 5-DIMENSION DIAGNOSIS ===== -->
+  <section class="diagnosis-section">
+    <h2>五维声乐诊断</h2>
+    <div class="diagnosis-grid" id="diagnosisGrid">
+      <!-- populated by JS -->
+    </div>
+  </section>
+
+  <!-- ===== SHARE CARD ===== -->
+  <section class="share-section">
+    <h2 style="font-size:1.8rem;font-weight:800;margin-bottom:24px;
+      background:linear-gradient(135deg,#fff,var(--neon-purple));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+      分享你的声乐天赋
+    </h2>
+    <div class="share-card">
+      <div class="share-content">
+        <div class="share-score" id="shareScore">87</div>
+        <div class="share-rank">✨ GOOD! ✨</div>
+        <div class="share-dims">
+          <div class="share-dim">
+            <div class="share-dim-val">92</div>
+            <div class="share-dim-label">放松度</div>
+          </div>
+          <div class="share-dim">
+            <div class="share-dim-val">78</div>
+            <div class="share-dim-label">混声比</div>
+          </div>
+          <div class="share-dim">
+            <div class="share-dim-val">85</div>
+            <div class="share-dim-label">稳定性</div>
+          </div>
+          <div class="share-dim">
+            <div class="share-dim-val">91</div>
+            <div class="share-dim-label">气息</div>
+          </div>
+          <div class="share-dim">
+            <div class="share-dim-val">88</div>
+            <div class="share-dim-label">能量</div>
+          </div>
+        </div>
+        <div class="share-branding">
+          <span>VIBESING</span> 高音觉醒 · 你的 AI 声乐教练
+        </div>
+        <button class="btn-share" onclick="alert('分享功能开发中 🚀')">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>
+          </svg>
+          分享到朋友圈
+        </button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+// ======== PARTICLES ========
+(function initParticles(){
+  const c = document.getElementById('particles');
+  const colors = ['var(--neon-cyan)','var(--neon-pink)','var(--neon-purple)','var(--neon-green)','var(--neon-yellow)'];
+  for(let i=0;i<40;i++){
+    const p = document.createElement('div');
+    p.className='particle';
+    p.style.cssText=`
+      left:${Math.random()*100}%;
+      background:${colors[i%colors.length]};
+      width:${2+Math.random()*3}px;height:${2+Math.random()*3}px;
+      animation-duration:${8+Math.random()*12}s;
+      animation-delay:${Math.random()*10}s;
+      box-shadow:0 0 ${4+Math.random()*6}px currentColor;
+    `;
+    c.appendChild(p);
+  }
+})();
+
+// ======== WAVEFORM CANVAS ========
+const waveCanvas = document.getElementById('waveCanvas');
+const wCtx = waveCanvas.getContext('2d');
+let wavePhase = 0;
+let waveAmplitude = 0;
+let targetAmplitude = 0;
+let isSimulating = false;
+
+function resizeWave(){
+  const r = waveCanvas.getBoundingClientRect();
+  waveCanvas.width = r.width * 2;
+  waveCanvas.height = r.height * 2;
+  wCtx.scale(2,2);
+}
+resizeWave();
+window.addEventListener('resize', resizeWave);
+
+function drawWave(){
+  const w = waveCanvas.width/2, h = waveCanvas.height/2;
+  wCtx.clearRect(0,0,w,h);
+  
+  waveAmplitude += (targetAmplitude - waveAmplitude) * 0.08;
+  
+  // Multiple layered waves
+  const layers = [
+    {freq:0.02, amp:1.0, speed:0.03, color:'rgba(0,240,255,0.4)', width:2},
+    {freq:0.015, amp:0.7, speed:0.02, color:'rgba(168,85,247,0.3)', width:1.5},
+    {freq:0.025, amp:0.5, speed:0.04, color:'rgba(0,255,136,0.2)', width:1},
+  ];
+  
+  layers.forEach(l => {
+    wCtx.beginPath();
+    wCtx.strokeStyle = l.color;
+    wCtx.lineWidth = l.width;
+    for(let x=0;x<w;x++){
+      const y = h/2 + Math.sin(x*l.freq + wavePhase*l.speed) * waveAmplitude * l.amp * (h*0.35)
+        + Math.sin(x*l.freq*2.3 + wavePhase*l.speed*1.5) * waveAmplitude * l.amp * (h*0.15);
+      x===0 ? wCtx.moveTo(x,y) : wCtx.lineTo(x,y);
+    }
+    wCtx.stroke();
+  });
+  
+  // Center line glow
+  if(waveAmplitude > 0.1) {
+    const grad = wCtx.createLinearGradient(0,h/2-2,0,h/2+2);
+    grad.addColorStop(0,'rgba(0,240,255,0)');
+    grad.addColorStop(0.5,`rgba(0,240,255,${waveAmplitude*0.15})`);
+    grad.addColorStop(1,'rgba(0,240,255,0)');
+    wCtx.fillStyle = grad;
+    wCtx.fillRect(0,h/2-1,w,2);
+  }
+  
+  wavePhase++;
+  requestAnimationFrame(drawWave);
+}
+drawWave();
+
+// ======== SIMULATION ENGINE ========
+let simInterval = null;
+let combo = 0;
+let maxCombo = 0;
+let perfectCount = 0;
+let totalCount = 0;
+let historyData = [];
+
+const judgmentColors = {
+  'PERFECT!': 'var(--perfect)',
+  'GOOD!': 'var(--good)',
+  'PASSED': 'var(--passed)',
+  'FAILED': 'var(--failed)',
+};
+const judgmentClasses = {
+  'PERFECT!': 'perfect',
+  'GOOD!': 'good',
+  'PASSED': 'passed',
+  'FAILED': 'failed',
+};
+
+function getJudgment(score) {
+  if(score >= 90) return 'PERFECT!';
+  if(score >= 70) return 'GOOD!';
+  if(score >= 50) return 'PASSED';
+  return 'FAILED';
+}
+
+function showJudgmentBurst(text) {
+  const el = document.getElementById('judgment');
+  el.textContent = text;
+  el.style.color = judgmentColors[text];
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+
+function updateScoreRing(score) {
+  const fill = document.getElementById('scoreRingFill');
+  const circumference = 2 * Math.PI * 70; // ~440
+  const offset = circumference * (1 - score/100);
+  fill.style.strokeDashoffset = offset;
+  
+  if(score >= 90) fill.style.stroke = 'var(--perfect)';
+  else if(score >= 70) fill.style.stroke = 'var(--good)';
+  else if(score >= 50) fill.style.stroke = 'var(--passed)';
+  else fill.style.stroke = 'var(--failed)';
+}
+
+function animateNumber(el, target, duration=800) {
+  const start = parseInt(el.textContent) || 0;
+  const diff = target - start;
+  const startTime = performance.now();
+  function step(t) {
+    const progress = Math.min((t - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(start + diff * eased);
+    if(progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function updateCombo(judgment) {
+  const display = document.getElementById('comboDisplay');
+  const num = document.getElementById('comboNumber');
+  
+  if(judgment === 'PERFECT!' || judgment === 'GOOD!') {
+    combo++;
+    if(combo > maxCombo) maxCombo = combo;
+    display.style.opacity = combo >= 2 ? '1' : '0';
+    num.textContent = combo;
+    display.classList.remove('burst');
+    void display.offsetWidth;
+    display.classList.add('burst');
+  } else {
+    combo = 0;
+    display.style.opacity = '0';
+  }
+}
+
+function addHistoryCard(score, judgment, features) {
+  totalCount++;
+  if(judgment === 'PERFECT!') perfectCount++;
+  
+  const list = document.getElementById('historyList');
+  const cls = judgmentClasses[judgment];
+  
+  const card = document.createElement('div');
+  card.className = `history-card ${cls}`;
+  card.style.opacity = '0';
+  card.style.transform = 'translateX(-20px)';
+  card.innerHTML = `
+    <div class="hc-rank ${cls}">${score}</div>
+    <div class="hc-info">
+      <div class="hc-title">${features.note || '高音段'} · ${features.f0}Hz</div>
+      <div class="hc-detail">HNR ${features.hnr}dB · 能量 ${features.energy}dB · 混声 ${features.mix}%</div>
+    </div>
+    <div class="hc-badge ${cls}">${judgment}</div>
+  `;
+  
+  list.insertBefore(card, list.firstChild);
+  
+  // Animate in
+  requestAnimationFrame(() => {
+    card.style.transition = 'all 0.4s cubic-bezier(0.16,1,0.3,1)';
+    card.style.opacity = '1';
+    card.style.transform = 'translateX(0)';
+  });
+  
+  // Keep max 8
+  while(list.children.length > 8) {
+    list.removeChild(list.lastChild);
+  }
+  
+  // Update stats
+  animateNumber(document.getElementById('statScore'), score);
+  document.getElementById('statPerfect').textContent = perfectCount;
+  document.getElementById('statCombo').textContent = maxCombo;
+  document.getElementById('statAccuracy').textContent = Math.round(perfectCount/totalCount*100) + '%';
+}
+
+function generateFrame() {
+  // Simulate realistic vocal features
+  const baseScore = 55 + Math.random() * 40;
+  const burst = Math.random();
+  let score;
+  
+  // Create interesting patterns - sometimes perfect streaks, sometimes failures
+  if(burst > 0.92) score = Math.min(100, baseScore + 25); // burst perfect
+  else if(burst < 0.08) score = Math.max(15, baseScore - 35); // sudden fail
+  else score = baseScore + (Math.random()-0.5)*20;
+  
+  score = Math.round(Math.max(0, Math.min(100, score)));
+  
+  const judgment = getJudgment(score);
+  const f0 = Math.round(180 + Math.random() * 300);
+  const hnr = (8 + Math.random() * 20).toFixed(1);
+  const energy = (-35 + Math.random() * 30).toFixed(1);
+  const mixPct = Math.round(Math.random() * 100);
+  
+  const notes = ['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5'];
+  const note = notes[Math.floor(Math.random()*notes.length)];
+  
+  // Update phone display
+  animateNumber(document.getElementById('scoreValue'), score, 400);
+  updateScoreRing(score);
+  showJudgmentBurst(judgment);
+  updateCombo(judgment);
+  
+  // Feature bars
+  const hnrPct = Math.min(100, parseFloat(hnr)/30 * 100);
+  const f0Pct = Math.min(100, f0/800 * 100);
+  const energyPct = Math.min(100, (parseFloat(energy)+50)/50 * 100);
+  
+  document.getElementById('barHNR').style.width = hnrPct + '%';
+  document.getElementById('barHNR').style.background = hnrPct > 60 ? 'var(--neon-cyan)' : hnrPct > 30 ? 'var(--neon-yellow)' : 'var(--neon-pink)';
+  document.getElementById('valHNR').textContent = hnr + 'dB';
+  
+  document.getElementById('barF0').style.width = f0Pct + '%';
+  document.getElementById('valF0').textContent = f0 + 'Hz';
+  
+  document.getElementById('barEnergy').style.width = energyPct + '%';
+  document.getElementById('valEnergy').textContent = energy + 'dB';
+  
+  document.getElementById('barMix').style.width = mixPct + '%';
+  document.getElementById('valMix').textContent = mixPct + '%';
+  
+  // Waveform amplitude
+  targetAmplitude = 0.3 + (score/100) * 0.7;
+  
+  // History card
+  addHistoryCard(score, judgment, {f0, hnr, energy, mix: mixPct, note});
+}
+
+function toggleSimulation() {
+  const btn = document.getElementById('btnStart');
+  const status = document.getElementById('phoneStatus');
+  
+  if(isSimulating) {
+    clearInterval(simInterval);
+    isSimulating = false;
+    btn.textContent = '开始练声';
+    btn.style.background = 'linear-gradient(135deg,var(--neon-cyan),var(--neon-purple))';
+    status.textContent = '● LISTENING';
+    status.style.color = 'var(--neon-green)';
+    targetAmplitude = 0;
+  } else {
+    isSimulating = true;
+    btn.textContent = '⏸ 暂停';
+    btn.style.background = 'linear-gradient(135deg,var(--neon-pink),var(--neon-orange))';
+    status.textContent = '● ANALYZING';
+    status.style.color = 'var(--neon-cyan)';
+    generateFrame();
+    simInterval = setInterval(generateFrame, 1800);
+  }
+}
+
+function showFeedback() {
+  const emojis = ['🎯 标记为"准确"', '❌ 标记为"不准"', '🤷 不确定'];
+  const choice = emojis[Math.floor(Math.random()*emojis.length)];
+  
+  const btn = event.target;
+  const original = btn.textContent;
+  btn.textContent = choice;
+  btn.style.background = 'rgba(0,240,255,0.1)';
+  btn.style.borderColor = 'rgba(0,240,255,0.3)';
+  setTimeout(()=>{ btn.textContent = original; btn.style.background = ''; btn.style.borderColor = ''; }, 1500);
+}
+
+// ======== JUDGMENT CARD CLICK ========
+function clickJudgment(card, text) {
+  const burst = card.querySelector('.j-card-burst span');
+  burst.style.animation = 'none';
+  void burst.offsetWidth;
+  burst.style.animation = 'judgmentBurst 1s cubic-bezier(0.16,1,0.3,1) forwards';
+  
+  // Haptic-like shake
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = 'cardShake 0.4s ease-out';
+}
+
+// ======== DIAGNOSIS CARDS ========
+const dimensions = [
+  {
+    id:'tension', icon:'🔴', name:'紧张度 · Tension',
+    sub:'声门闭合 & 喉部放松',
+    score: 72, tags:['HNR','声带闭合','喉位'],
+    color:'var(--neon-pink)',
+  },
+  {
+    id:'mix', icon:'🟣', name:'混声比 · Mix Voice',
+    sub:'胸声与头声共鸣平衡',
+    score: 85, tags:['频谱斜率','共振峰','F1/F2'],
+    color:'var(--neon-purple)',
+  },
+  {
+    id:'stability', icon:'🔵', name:'稳定性 · Stability',
+    sub:'音高和音量的时间一致性',
+    score: 91, tags:['Jitter','Shimmer','F0变异'],
+    color:'var(--neon-cyan)',
+  },
+  {
+    id:'breath', icon:'🟢', name:'气息 · Breath Support',
+    sub:'气息流量与声门配合',
+    score: 68, tags:['H1-H2','能量包络','起始斜率'],
+    color:'var(--neon-green)',
+  },
+  {
+    id:'energy', icon:'🟡', name:'能量控制 · Dynamics',
+    sub:'音量动态范围与控制',
+    score: 79, tags:['dB范围','峰值因子','包络平滑'],
+    color:'var(--neon-yellow)',
+  },
+];
+
+(function renderDiagnosis(){
+  const grid = document.getElementById('diagnosisGrid');
+  dimensions.forEach((d,i) => {
+    const card = document.createElement('div');
+    card.className = `d-card ${d.id}`;
+    card.innerHTML = `
+      <div class="d-header">
+        <div class="d-icon">${d.icon}</div>
+        <div>
+          <div class="d-title">${d.name}</div>
+          <div class="d-subtitle">${d.sub}</div>
+        </div>
+      </div>
+      <div class="d-meter">
+        <div class="d-meter-track">
+          <div class="d-meter-fill" id="meter-${d.id}" style="width:0%"></div>
+        </div>
+        <div class="d-score" id="dscore-${d.id}">0</div>
+      </div>
+      <div class="d-tags">
+        ${d.tags.map(t => `<span class="d-tag">${t}</span>`).join('')}
+      </div>
+    `;
+    grid.appendChild(card);
+    
+    // Animate meter on scroll
+    setTimeout(() => {
+      const meter = document.getElementById(`meter-${d.id}`);
+      const scoreEl = document.getElementById(`dscore-${d.id}`);
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if(e.isIntersecting) {
+            meter.style.width = d.score + '%';
+            animateNumber(scoreEl, d.score, 1200);
+            observer.disconnect();
+          }
+        });
+      }, {threshold:0.3});
+      observer.observe(card);
+    }, i * 100);
+  });
+})();
+
+// ======== AUTO-START DEMO ========
+setTimeout(() => toggleSimulation(), 1500);
+
+// ======== KEYBOARD SHORTCUT ========
+document.addEventListener('keydown', e => {
+  if(e.code === 'Space') {
+    e.preventDefault();
+    toggleSimulation();
+  }
+});
+</script>
+
+</body>
+</html>
