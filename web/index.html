@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibesing 高音觉醒 — 开发仪表盘</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-card: #1a1a2e;
+    --bg-card-hover: #222240;
+    --accent-purple: #7c3aed;
+    --accent-pink: #ec4899;
+    --accent-cyan: #06b6d4;
+    --accent-green: #10b981;
+    --accent-orange: #f59e0b;
+    --accent-red: #ef4444;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border: #2d2d44;
+    --gradient-1: linear-gradient(135deg, #7c3aed, #ec4899);
+    --gradient-2: linear-gradient(135deg, #06b6d4, #10b981);
+    --gradient-3: linear-gradient(135deg, #f59e0b, #ef4444);
+    --shadow-glow: 0 0 40px rgba(124, 58, 237, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* Animated Background */
+  .bg-animation {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .bg-animation .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.15;
+    animation: float 20s infinite ease-in-out;
+  }
+  .bg-animation .orb:nth-child(1) {
+    width: 600px; height: 600px;
+    background: var(--accent-purple);
+    top: -200px; left: -100px;
+    animation-delay: 0s;
+  }
+  .bg-animation .orb:nth-child(2) {
+    width: 500px; height: 500px;
+    background: var(--accent-cyan);
+    bottom: -200px; right: -100px;
+    animation-delay: -7s;
+  }
+  .bg-animation .orb:nth-child(3) {
+    width: 400px; height: 400px;
+    background: var(--accent-pink);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: -14s;
+  }
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(50px, -30px) scale(1.1); }
+    50% { transform: translate(-30px, 50px) scale(0.9); }
+    75% { transform: translate(30px, 30px) scale(1.05); }
+  }
+
+  /* Main Container */
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Navigation */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+    background: rgba(10, 10, 15, 0.8);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0;
+  }
+  nav .nav-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  nav .logo {
+    font-size: 24px;
+    font-weight: 800;
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  nav .logo .emoji { -webkit-text-fill-color: initial; font-size: 28px; }
+  nav .nav-links {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  nav .nav-links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+  nav .nav-links a:hover, nav .nav-links a.active {
+    color: var(--text-primary);
+    background: rgba(124, 58, 237, 0.15);
+  }
+
+  /* Hero Section */
+  .hero {
+    text-align: center;
+    padding: 120px 0 80px;
+  }
+  .hero .badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    background: rgba(124, 58, 237, 0.15);
+    color: var(--accent-purple);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+  }
+  .hero h1 {
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero h1 .highlight {
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    font-size: 20px;
+    color: var(--text-secondary);
+    max-width: 700px;
+    margin: 0 auto 40px;
+  }
+
+  /* Stat Cards */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 80px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: default;
+  }
+  .stat-card:hover {
+    background: var(--bg-card-hover);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-glow);
+  }
+  .stat-card .number {
+    font-size: 36px;
+    font-weight: 800;
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-card .label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  /* Section Titles */
+  .section-title {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .section-title h2 {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .section-title p {
+    font-size: 16px;
+    color: var(--text-secondary);
+  }
+
+  /* Section Divider */
+  section { padding: 80px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+  /* --- Flip Cards --- */
+  .flip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+  }
+  .flip-card-container {
+    perspective: 1200px;
+    height: 420px;
+  }
+  .flip-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+  .flip-card.flipped { transform: rotateY(180deg); }
+  .flip-card .front, .flip-card .back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .flip-card .front {
+    background: var(--bg-card);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+  }
+  .flip-card .front .icon {
+    font-size: 56px;
+    margin-bottom: 20px;
+  }
+  .flip-card .front h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .flip-card .front .en-name {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .flip-card .front .severity {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+  .flip-card .front .severity .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .flip-card .front .severity .dot.active { background: var(--accent-red); }
+  .flip-card .front .desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .flip-card .front .flip-hint {
+    position: absolute;
+    bottom: 16px;
+    right: 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+    opacity: 0.6;
+  }
+  .flip-card .back {
+    background: var(--bg-secondary);
+    transform: rotateY(180deg);
+    padding: 28px;
+    overflow-y: auto;
+  }
+  .flip-card .back h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .flip-card .back .tech-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 13px;
+  }
+  .flip-card .back .tech-row .label { color: var(--text-muted); }
+  .flip-card .back .tech-row .value { color: var(--text-primary); font-weight: 600; }
+  .flip-card .back .algo-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 2px;
+  }
+  .algo-rule { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+  .algo-dl { background: rgba(124,58,237,0.15); color: var(--accent-purple); }
+  .algo-dsp { background: rgba(6,182,212,0.15); color: var(--accent-cyan); }
+  .algo-na { background: rgba(100,116,139,0.15); color: var(--text-muted); }
+  .flip-card .back .pipeline {
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    padding: 12px;
+    margin: 12px 0;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    color: var(--accent-cyan);
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+  .flip-card .back .version-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(245,158,11,0.15);
+    color: var(--accent-orange);
+  }
+
+  /* --- Architecture Diagram --- */
+  .arch-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px;
+    overflow-x: auto;
+  }
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    min-width: 900px;
+    flex-wrap: nowrap;
+  }
+  .arch-block {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    text-align: center;
+    min-width: 150px;
+    transition: all 0.3s;
+    cursor: default;
+  }
+  .arch-block:hover {
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 30px rgba(124,58,237,0.2);
+    transform: translateY(-4px);
+  }
+  .arch-block .block-icon { font-size: 28px; margin-bottom: 8px; }
+  .arch-block .block-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .arch-block .block-sub { font-size: 11px; color: var(--text-muted); }
+  .arch-arrow {
+    font-size: 24px;
+    color: var(--accent-purple);
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+
+  /* --- Timeline --- */
+  .timeline {
+    position: relative;
+    padding-left: 40px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent-purple), var(--accent-cyan), var(--accent-green));
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 40px;
+    padding: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    transition: all 0.3s;
+  }
+  .timeline-item:hover {
+    border-color: var(--accent-purple);
+    box-shadow: var(--shadow-glow);
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -33px;
+    top: 30px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent-purple);
+    border: 3px solid var(--bg-primary);
+  }
+  .timeline-item .version {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent-purple);
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+  .timeline-item h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .timeline-item p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+  .timeline-item .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .timeline-item .tags span {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(124,58,237,0.1);
+    color: var(--accent-purple);
+    border: 1px solid rgba(124,58,237,0.2);
+  }
+
+  /* --- Tech Stack Grid --- */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .tech-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.3s;
+  }
+  .tech-card:hover {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 30px rgba(6,182,212,0.15);
+    transform: translateY(-2px);
+  }
+  .tech-card .tech-icon { font-size: 32px; margin-bottom: 12px; }
+  .tech-card h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .tech-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .tech-card ul li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tech-card ul li::before {
+    content: '▸';
+    color: var(--accent-cyan);
+    font-size: 10px;
+  }
+
+  /* --- Params Table --- */
+  .params-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--bg-card);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .params-table th {
+    background: rgba(124,58,237,0.1);
+    color: var(--accent-purple);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 14px 16px;
+    text-align: left;
+  }
+  .params-table td {
+    padding: 12px 16px;
+    font-size: 13px;
+    border-top: 1px solid rgba(255,255,255,0.03);
+    color: var(--text-secondary);
+  }
+  .params-table tr:hover td {
+    background: rgba(124,58,237,0.05);
+    color: var(--text-primary);
+  }
+  .params-table td code {
+    background: rgba(6,182,212,0.1);
+    color: var(--accent-cyan);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', monospace;
+    font-size: 12px;
+  }
+
+  /* ---  Waveform animation --- */
+  .waveform-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 60px;
+    margin: 32px 0;
+  }
+  .waveform-bar {
+    width: 4px;
+    border-radius: 4px;
+    background: var(--gradient-1);
+    animation: wave 1.2s ease-in-out infinite;
+  }
+  @keyframes wave {
+    0%, 100% { height: 10px; }
+    50% { height: var(--h); }
+  }
+
+  /* --- Footer --- */
+  footer {
+    text-align: center;
+    padding: 60px 0 40px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  footer .footer-logo {
+    font-size: 20px;
+    font-weight: 800;
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+
+  /* Scroll animations */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    nav .nav-links { display: none; }
+    .hero { padding: 80px 0 40px; }
+    .hero h1 { font-size: 32px; }
+    .flip-grid { grid-template-columns: 1fr; }
+    .arch-container { padding: 24px; }
+    .flip-card-container { height: 480px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-animation">
+  <div class="orb"></div>
+  <div class="orb"></div>
+  <div class="orb"></div>
+</div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo"><span class="emoji">🎤</span> Vibesing</div>
+    <div class="nav-links">
+      <a href="#overview" class="active">概览</a>
+      <a href="#diagnosis">声学诊断</a>
+      <a href="#architecture">架构</a>
+      <a href="#params">参数</a>
+      <a href="#tech">技术栈</a>
+      <a href="#roadmap">路线图</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- HERO -->
+  <section class="hero" id="overview">
+    <div class="badge">MVP V0.1 · Rule-Based Detection · TestFlight Ready</div>
+    <h1>用 AI 听见<br><span class="highlight">声音的自由</span></h1>
+    <p>Vibesing（高音觉醒）是一款基于端侧 DSP + AI 的实时声乐训练 App，帮助歌手在练习中即时检测和改善"声门挤卡"等常见问题。</p>
+    
+    <div class="waveform-container" id="waveform"></div>
+    
+    <div class="stats">
+      <div class="stat-card">
+        <div class="number">16kHz</div>
+        <div class="label">采样率</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">&lt;100ms</div>
+        <div class="label">端到端延迟</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">280K</div>
+        <div class="label">模型参数 (V0.2)</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">80</div>
+        <div class="label">Mel 频带</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">25+</div>
+        <div class="label">可诊断问题</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">5</div>
+        <div class="label">V1.0 核心维度</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIAGNOSIS FLIP CARDS -->
+  <section id="diagnosis">
+    <div class="section-title reveal">
+      <h2>🔬 声学问题诊断图谱</h2>
+      <p>点击卡片翻转查看技术路线 · 25+ 种声乐问题的完整覆盖</p>
+    </div>
+    <div class="flip-grid" id="flipGrid"></div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section id="architecture">
+    <div class="section-title reveal">
+      <h2>⚙️ 系统架构</h2>
+      <p>从麦克风到 UI 的完整实时处理管线</p>
+    </div>
+    <div class="arch-container reveal">
+      <div class="arch-flow">
+        <div class="arch-block">
+          <div class="block-icon">🎙️</div>
+          <div class="block-title">麦克风</div>
+          <div class="block-sub">44.1kHz → 16kHz</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block">
+          <div class="block-icon">📊</div>
+          <div class="block-title">FFT / STFT</div>
+          <div class="block-sub">1024pt · 16ms hop</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block">
+          <div class="block-icon">🎵</div>
+          <div class="block-title">DSP 特征</div>
+          <div class="block-sub">Mel·HNR·F0·Energy</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block">
+          <div class="block-icon">🧠</div>
+          <div class="block-title">检测引擎</div>
+          <div class="block-sub">Rule → CNN (V0.2)</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block">
+          <div class="block-icon">📈</div>
+          <div class="block-title">后处理</div>
+          <div class="block-sub">EMA · 状态机</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block">
+          <div class="block-icon">📱</div>
+          <div class="block-title">UI 反馈</div>
+          <div class="block-sub">🔴🟢 灯 · 分数</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 40px"></div>
+
+    <!-- V1.0 Dual-lane diagram -->
+    <div class="arch-container reveal">
+      <h3 style="text-align:center;margin-bottom:24px;font-size:18px;font-weight:700;">V1.0 混合架构：DL + 规则 双轨并行</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;min-width:600px;">
+        <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:14px;padding:24px;">
+          <h4 style="color:var(--accent-purple);margin-bottom:12px;">🧠 DL 通道 (复杂模式)</h4>
+          <ul style="list-style:none;padding:0;font-size:13px;color:var(--text-secondary);">
+            <li style="padding:4px 0">▸ 挤卡（Mel 频谱微妙模式）</li>
+            <li style="padding:4px 0">▸ 混声（多特征非线性交互）</li>
+            <li style="padding:4px 0">▸ 漏气（与挤卡的精细区分）</li>
+            <li style="padding:4px 0">▸ 喉位（共振峰隐式学习）</li>
+            <li style="padding:4px 0">▸ 大白嗓（频谱形状分类）</li>
+          </ul>
+        </div>
+        <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:14px;padding:24px;">
+          <h4 style="color:var(--accent-green);margin-bottom:12px;">📏 规则通道 (清晰定义)</h4>
+          <ul style="list-style:none;padding:0;font-size:13px;color:var(--text-secondary);">
+            <li style="padding:4px 0">▸ 破音（F0 帧间差 &gt; 50Hz）</li>
+            <li style="padding:4px 0">▸ 硬起音（能量上升斜率）</li>
+            <li style="padding:4px 0">▸ 气息稳定性（变异系数）</li>
+            <li style="padding:4px 0">▸ 力度控制（Energy jitter）</li>
+            <li style="padding:4px 0">▸ 面罩共鸣（频段能量比）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARAMS TABLE -->
+  <section id="params">
+    <div class="section-title reveal">
+      <h2>🎛️ 核心参数同步表</h2>
+      <p>Python 与 iOS 必须保持完全同步</p>
+    </div>
+    <div class="reveal" style="overflow-x:auto;">
+      <table class="params-table">
+        <thead>
+          <tr>
+            <th>参数</th>
+            <th>Python 位置</th>
+            <th>iOS 位置</th>
+            <th>默认值</th>
+            <th>含义</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>HNR_THRESHOLD</code></td>
+            <td><code>rule_detector.py</code></td>
+            <td><code>SqueezeDetector.swift</code></td>
+            <td><strong>12.0 dB</strong></td>
+            <td>HNR 阈值（低于此值→紧张）</td>
+          </tr>
+          <tr>
+            <td><code>ENERGY_MIN</code></td>
+            <td><code>rule_detector.py</code></td>
+            <td><code>SqueezeDetector.swift</code></td>
+            <td><strong>-40.0 dB</strong></td>
+            <td>能量地板（低于此→静音）</td>
+          </tr>
+          <tr>
+            <td><code>F0_HIGH</code></td>
+            <td><code>rule_detector.py</code></td>
+            <td><code>SqueezeDetector.swift</code></td>
+            <td><strong>220 Hz</strong></td>
+            <td>高音判定阈值</td>
+          </tr>
+          <tr>
+            <td><code>EMA_ALPHA</code></td>
+            <td><code>EMAFilter</code></td>
+            <td><code>SqueezeDetector</code></td>
+            <td><strong>0.4</strong></td>
+            <td>指数移动平均系数</td>
+          </tr>
+          <tr>
+            <td><code>TRIGGER_FRAMES</code></td>
+            <td><code>SqueezeStateFilter</code></td>
+            <td><code>SqueezeDetector</code></td>
+            <td><strong>6 (96ms)</strong></td>
+            <td>触发红灯最少帧数</td>
+          </tr>
+          <tr>
+            <td><code>CLEAR_FRAMES</code></td>
+            <td><code>SqueezeStateFilter</code></td>
+            <td><code>SqueezeDetector</code></td>
+            <td><strong>10 (160ms)</strong></td>
+            <td>恢复绿灯最少帧数</td>
+          </tr>
+          <tr>
+            <td><code>THRESHOLD_ON</code></td>
+            <td><code>SqueezeStateFilter</code></td>
+            <td><code>SqueezeDetector</code></td>
+            <td><strong>0.55</strong></td>
+            <td>触发概率阈值</td>
+          </tr>
+          <tr>
+            <td><code>THRESHOLD_OFF</code></td>
+            <td><code>SqueezeStateFilter</code></td>
+            <td><code>SqueezeDetector</code></td>
+            <td><strong>0.30</strong></td>
+            <td>恢复概率阈值</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section id="tech">
+    <div class="section-title reveal">
+      <h2>🛠️ 技术栈</h2>
+      <p>端侧优先 · 全链路 16kHz</p>
+    </div>
+    <div class="tech-grid reveal">
+      <div class="tech-card">
+        <div class="tech-icon">🐍</div>
+        <h4>Python DSP 验证管线</h4>
+        <ul>
+          <li>librosa (Mel + STFT)</li>
+          <li>parselmouth / Praat (F0 + HNR)</li>
+          <li>numpy / scipy 信号处理</li>
+          <li>matplotlib 可视化</li>
+        </ul>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🍎</div>
+        <h4>iOS 实时引擎</h4>
+        <ul>
+          <li>AVAudioEngine (采集)</li>
+          <li>Accelerate / vDSP (FFT+Mel)</li>
+          <li>自研 F0 / HNR 算法</li>
+          <li>SwiftUI + Combine (UI)</li>
+        </ul>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🧠</div>
+        <h4>DL 训练 (V0.2+)</h4>
+        <ul>
+          <li>PyTorch 2.x (训练)</li>
+          <li>Causal DWSep CNN (TCN)</li>
+          <li>coremltools 7+ (转换)</li>
+          <li>CoreML Neural Engine (推理)</li>
+        </ul>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">💾</div>
+        <h4>数据 & 存储</h4>
+        <ul>
+          <li>SQLite3 (端侧反馈)</li>
+          <li>CSV 导出 (训练数据)</li>
+          <li>用户录音本地压缩存储</li>
+          <li>TestFlight 数据回流</li>
+        </ul>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🔊</div>
+        <h4>音频参数</h4>
+        <ul>
+          <li>采样率: 16kHz mono</li>
+          <li>FFT: 1024pt (64ms)</li>
+          <li>Hop: 256 (16ms) · 75% overlap</li>
+          <li>帧率: ~62.5 fps</li>
+        </ul>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">📐</div>
+        <h4>模型规格 (V0.2)</h4>
+        <ul>
+          <li>输入: [82 × 32] (Mel+HNR+E)</li>
+          <li>4 层 Causal DWSep Conv</li>
+          <li>Dilation: 1, 2, 4, 8</li>
+          <li>~280K params · 560KB Float16</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="roadmap">
+    <div class="section-title reveal">
+      <h2>🗺️ 版本路线图</h2>
+      <p>从规则到深度学习 · 从 1 个维度到 25+</p>
+    </div>
+    <div class="timeline reveal">
+      <div class="timeline-item">
+        <div class="version">V0.1 · WEEK 1-2</div>
+        <h3>规则引擎 MVP</h3>
+        <p>HNR + Energy + F0 → Sigmoid → EMA → 状态机。紧张度评分 0-100。动态阈值 + 环境噪声防护。TestFlight 上线收集数据。</p>
+        <div class="tags">
+          <span>1 维度（紧张度）</span>
+          <span>Rule-based</span>
+          <span>65-75% 精度</span>
+          <span>0 训练数据</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="version">V0.2 · WEEK 5-8</div>
+        <h3>首个 DL 模型</h3>
+        <p>Causal DWSep CNN 替代规则引擎检测挤卡。280K 参数，CoreML Float16 部署。新增混声 5 分类和稳定性评分。</p>
+        <div class="tags">
+          <span>3 维度</span>
+          <span>CNN (单任务)</span>
+          <span>80-90% 精度</span>
+          <span>500+ clips</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="version">V1.0 · WEEK 13-20</div>
+        <h3>多任务 DL + 规则混合</h3>
+        <p>5 核心维度全面上线（紧张度、混声、稳定性、漏气、能量控制）。DL 通道 + 规则通道双轨并行。</p>
+        <div class="tags">
+          <span>5 核心维度</span>
+          <span>Multi-task CNN</span>
+          <span>90%+ 精度</span>
+          <span>2000+ clips</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="version">V2.0 · WEEK 20-30</div>
+        <h3>全面扩展 + 轻量 ASR</h3>
+        <p>新增喉位、鼻音、颤音等维度。引入 WhisperTiny 进行音素级分析。个性化模型 fine-tuning。</p>
+        <div class="tags">
+          <span>10+ 维度</span>
+          <span>CNN + ASR</span>
+          <span>On-Device Fine-tuning</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="version">V3.0 · 长期</div>
+        <h3>完整声乐教练系统</h3>
+        <p>25+ 维度全覆盖。AI 教练实时语音指导。社交 PK 系统。个性化训练计划自动生成。</p>
+        <div class="tags">
+          <span>25+ 维度</span>
+          <span>Full Stack AI</span>
+          <span>Social + Coaching</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="footer-logo">🎤 Vibesing · 高音觉醒</div>
+  <p>让每个人都能自由歌唱 · Built with ❤️ &amp; DSP</p>
+</footer>
+
+<script>
+// ==== Waveform Animation ====
+(function() {
+  const container = document.getElementById('waveform');
+  const count = 40;
+  for (let i = 0; i < count; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'waveform-bar';
+    const h = 15 + Math.random() * 40;
+    bar.style.setProperty('--h', h + 'px');
+    bar.style.animationDelay = (i * 0.05) + 's';
+    container.appendChild(bar);
+  }
+})();
+
+// ==== Scroll Reveal ====
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+reveals.forEach(r => observer.observe(r));
+
+// ==== Smooth scroll nav ====
+document.querySelectorAll('nav a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+    document.querySelectorAll('nav a').forEach(n => n.classList.remove('active'));
+    a.classList.add('active');
+  });
+});
+
+// ==== Flip Cards Data ====
+const problems = [
+  {
+    icon: '😤', name: '挤卡', en: 'Vocal Squeeze / Constriction',
+    severity: 5, version: 'V0.1',
+    desc: '声门过紧，假声带参与，声音听起来"被掐住"。90% 未受训歌手在高音区会出现。',
+    features: 'HNR↓ · CPP↓ · 1-3kHz 鼓包',
+    algo: 'rule', algoLabel: 'Rule → CNN',
+    pipeline: 'HNR → sigmoid(0.5×(12-x))\n→ F0 pitch boost\n→ EMA (α=0.4)\n→ State(6on/10off)',
+    accuracy: '65-75% (V0.1) → 90%+ (V1.0)',
+    ui: '🔴 红灯 + 振动 + 分数骤降',
+    tip: '唇颤音、哼鸣、叹气式发声'
+  },
+  {
+    icon: '💨', name: '漏气', en: 'Breathiness / Incomplete Closure',
+    severity: 3, version: 'V1.0',
+    desc: '声带闭合不全，大量气流泄出。声音发虚、音量低、"气不够用"。',
+    features: 'HNR↓ · H1-H2↑(正) · CQ↓',
+    algo: 'dl', algoLabel: 'DL (CNN 多任务头)',
+    pipeline: 'Mel[80×32]+HNR+Energy\n→ CNN backbone\n→ breathiness_head\n→ sigmoid',
+    accuracy: '85-90% (V1.0)',
+    ui: '🟡 黄灯 + "声带闭合不完全"',
+    tip: '"Gee" 闭合练习、Staccato 练习'
+  },
+  {
+    icon: '📢', name: '大白嗓', en: 'Yelling / Untrained Belting',
+    severity: 4, version: 'V1.0',
+    desc: '扯着嗓子喊，没有共鸣聚焦。声音大但粗糙，唱完嗓子疼。',
+    features: 'H1-H2↓↓ · Singer\'s F 缺失 · Energy↑↑',
+    algo: 'dl', algoLabel: 'CNN + H1-H2',
+    pipeline: 'H1-H2 < -10dB\nAND SF_ratio < 0.05\nAND energy > -10dB\n→ Yelling',
+    accuracy: '85-90% (V1.0)',
+    ui: '🟠 橙灯 + "用共鸣代替力量"',
+    tip: '哼鸣找共鸣、面罩发声练习'
+  },
+  {
+    icon: '🔼', name: '喉位高', en: 'High Larynx',
+    severity: 3, version: 'V2.0',
+    desc: '喉头随音高上提，声道缩短。声音发尖、音色"白"、缺乏温暖。',
+    features: 'F1/F2/F3 一致上移 > 10-20%',
+    algo: 'dl', algoLabel: 'CNN 隐式学习共振峰',
+    pipeline: 'Mel → CNN → larynx_score\n辅助: Praat F1/F2/F3\n→ auxiliary loss',
+    accuracy: '80-90% (V2.0)',
+    ui: '🟣 紫灯 + "打哈欠放松喉咙"',
+    tip: '打哈欠练习、/ɡʌ/ 下行音阶'
+  },
+  {
+    icon: '💥', name: '破音', en: 'Voice Break / Crack',
+    severity: 5, version: 'V1.0',
+    desc: '音高突然跳变。F0 在 1-2 帧内跳变 > 50Hz。声区转换失败。',
+    features: 'F0 帧间差 > 50Hz（瞬态）',
+    algo: 'rule', algoLabel: '永远规则引擎',
+    pipeline: 'if |F0[t]-F0[t-1]| > 50Hz\n  AND both voiced\n  AND energy > -40dB\n→ VOICE BREAK',
+    accuracy: '95%+ (规则即可)',
+    ui: '💥 红色闪烁（瞬态事件）',
+    tip: '声区连接练习、Messa di voce'
+  },
+  {
+    icon: '🎭', name: '混声比例', en: 'Mix Voice Ratio',
+    severity: 2, version: 'V0.2',
+    desc: '胸声与头声的混合比例。5 级分类：纯胸→偏胸→平衡→偏头→纯头。',
+    features: '多特征非线性交互 (Mel + H1-H2 + 共振峰)',
+    algo: 'dl', algoLabel: 'CNN 5-class Ordinal',
+    pipeline: 'Mel[80×32]+HNR+E\n→ CNN backbone\n→ mix_head: softmax(5)\nOrdinal: [1,1,1,0,0]=Class2',
+    accuracy: '75-85% (V0.2)',
+    ui: 'Slider 滑块（偏胸↔偏头）',
+    tip: '根据 Slider 位置推荐调整建议'
+  },
+  {
+    icon: '🫁', name: '气息稳定性', en: 'Breath Stability',
+    severity: 2, version: 'V0.2',
+    desc: '帧间能量和 F0 的变异系数。排除正常颤音后的不规则抖动。',
+    features: 'Energy CV↑ · F0 CV↑（排除 4.5-6.5Hz 颤音）',
+    algo: 'dsp', algoLabel: '传统 DSP（变异系数）',
+    pipeline: 'window = 0.5s\nenergy_cv = std/mean\nf0_cv = std/mean (去颤音)\n→ stability_score',
+    accuracy: '80-85%',
+    ui: '稳定性 XX/100 评分',
+    tip: '长音 Sustain 练习、腹式呼吸'
+  },
+  {
+    icon: '🎤', name: '硬起音', en: 'Hard Onset / Glottal Attack',
+    severity: 2, version: 'V1.0',
+    desc: '每句开头声门冲击过强。能量在 20ms 内上升过快。',
+    features: '起音能量上升率 > 3 dB/ms',
+    algo: 'rule', algoLabel: '规则引擎（永远够用）',
+    pipeline: 'onset = energy 从 <-40 变 >-40\nrise_rate = ΔE / Δt\nif > 3 dB/ms → Hard',
+    accuracy: '85%+',
+    ui: '⚠️ 文字提示',
+    tip: '气息起音、/h/ 起音练习'
+  },
+  {
+    icon: '🎼', name: '颤音质量', en: 'Vibrato Analysis',
+    severity: 1, version: 'V1.0',
+    desc: '分析 F0 轨迹上的周期性调制。正常 4.5-6.5Hz / 0.5-2 semitones。',
+    features: 'F0 短时 FFT → 峰频率 + 峰幅度 + 规整度',
+    algo: 'dsp', algoLabel: '传统 DSP（F0 FFT）',
+    pipeline: 'F0_trajectory → FFT(1s窗)\npeak_freq in 2-10Hz\npeak_depth (semitones)\nregularity = 1/peak_width',
+    accuracy: '90%+',
+    ui: '颤音：频率/深度/规整度评分',
+    tip: '正弦颤音练习、Messa di voce'
+  },
+  {
+    icon: '👃', name: '鼻音过重', en: 'Hypernasality',
+    severity: 2, version: 'V2.0',
+    desc: '软腭下沉导致鼻腔过度耦合。800-1200Hz 出现反共振峰凹陷。',
+    features: '800-1200Hz 反共振峰 · F1 带宽↑',
+    algo: 'dl', algoLabel: 'CNN (需要大量数据)',
+    pipeline: 'CNN 从 Mel 学习\n800-1200Hz 凹陷模式\n需排除鼻辅音 /m/,/n/',
+    accuracy: '70-80% (V2.0)',
+    ui: '⚠️ 文字提示',
+    tip: '"Nay", "Mum" 软腭控制练习'
+  },
+  {
+    icon: '📊', name: '能量控制', en: 'Energy / Dynamics Control',
+    severity: 2, version: 'V1.0',
+    desc: '综合检测：音量过大（大白嗓倾向）、帧间能量 jitter、频谱平衡。',
+    features: 'Peak-Mean Energy · Energy jitter · Hi/Lo Band ratio',
+    algo: 'dsp', algoLabel: '传统 DSP + V1.0 CNN',
+    pipeline: 'impulse = peak-mean > 6dB\njitter = std(ΔE)\nbalance = Mel[40:60]/Mel[0:20]\n→ score',
+    accuracy: '75%+',
+    ui: '能量控制 XX/100 评分',
+    tip: '渐强渐弱练习、Messa di voce'
+  },
+  {
+    icon: '✨', name: '面罩共鸣', en: 'Singer\'s Formant / Mask Resonance',
+    severity: 1, version: 'V1.0',
+    desc: '2.5-3.5kHz 频段的能量聚焦。训练有素的歌手此频段能量显著更高。',
+    features: '3kHz 频段能量 / 总能量 → 比值',
+    algo: 'dsp', algoLabel: '传统 DSP（频段比值）',
+    pipeline: 'SF_energy = sum(Mel[2.5k:3.5k])\ntotal = sum(Mel[all])\nratio = SF_energy / total',
+    accuracy: '80%+',
+    ui: '共鸣丰满度指标',
+    tip: '哼鸣找面罩振动、"Nay" 练习'
+  }
+];
+
+// ==== Build Flip Cards ====
+const grid = document.getElementById('flipGrid');
+problems.forEach(p => {
+  const algoClass = p.algo === 'rule' ? 'algo-rule' : p.algo === 'dl' ? 'algo-dl' : 'algo-dsp';
+  const dots = Array.from({length:5}, (_,i) => 
+    `<div class="dot ${i < p.severity ? 'active' : ''}"></div>`
+  ).join('');
+
+  const card = document.createElement('div');
+  card.className = 'flip-card-container reveal';
+  card.innerHTML = `
+    <div class="flip-card" onclick="this.classList.toggle('flipped')">
+      <div class="front">
+        <div class="icon">${p.icon}</div>
+        <h3>${p.name}</h3>
+        <div class="en-name">${p.en}</div>
+        <div class="severity">${dots}</div>
+        <div class="desc">${p.desc}</div>
+        <div class="flip-hint">点击翻转 →</div>
+      </div>
+      <div class="back">
+        <h4>${p.icon} ${p.name} · 技术路线</h4>
+        <div class="tech-row"><span class="label">首次版本</span><span class="value"><span class="version-tag">${p.version}</span></span></div>
+        <div class="tech-row"><span class="label">核心声学特征</span><span class="value" style="font-size:12px;text-align:right;max-width:180px;">${p.features}</span></div>
+        <div class="tech-row"><span class="label">算法</span><span class="value"><span class="algo-badge ${algoClass}">${p.algoLabel}</span></span></div>
+        <div class="tech-row"><span class="label">精度预期</span><span class="value" style="font-size:12px;">${p.accuracy}</span></div>
+        <div class="pipeline">${p.pipeline}</div>
+        <div class="tech-row"><span class="label">产品表现</span><span class="value" style="font-size:12px;text-align:right;max-width:180px;">${p.ui}</span></div>
+        <div class="tech-row"><span class="label">矫正建议</span><span class="value" style="font-size:12px;text-align:right;max-width:180px;">${p.tip}</span></div>
+      </div>
+    </div>`;
+  grid.appendChild(card);
+
+  // observe the new card for scroll reveal
+  observer.observe(card);
+});
+
+// ==== Active nav on scroll ====
+const sections = document.querySelectorAll('section[id]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 200) current = s.id;
+  });
+  document.querySelectorAll('nav a').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+</body>
+</html>

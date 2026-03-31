@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Vibesing · 高音觉醒</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --bg: #050508;
+    --surface: #0f0f18;
+    --border: #1a1a2e;
+    --accent: #7c3aed;
+    --green: #10b981;
+    --green-glow: rgba(16, 185, 129, 0.4);
+    --red: #ef4444;
+    --red-glow: rgba(239, 68, 68, 0.4);
+    --orange: #f59e0b;
+    --text: #f1f5f9;
+    --text-dim: #94a3b8;
+    --text-muted: #64748b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* === Phone Frame === */
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: var(--bg);
+    border-radius: 48px;
+    border: 3px solid #222;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 80px rgba(124,58,237,0.1), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .phone .notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 34px;
+    background: #000;
+    border-radius: 0 0 20px 20px;
+    z-index: 100;
+  }
+  .phone .status-bar {
+    height: 54px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 28px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    z-index: 50;
+    position: relative;
+  }
+  .phone .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 100px;
+    z-index: 100;
+  }
+
+  /* === Screens === */
+  .screen {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 32px 60px;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+  .screen.active {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: all;
+  }
+
+  /* === Screen 0: Welcome === */
+  #screen-welcome .logo-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--accent), #ec4899);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    margin-bottom: 32px;
+    box-shadow: 0 0 60px rgba(124,58,237,0.3);
+  }
+  #screen-welcome h1 {
+    font-size: 32px;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+  #screen-welcome .sub {
+    font-size: 16px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .btn-primary {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: inherit;
+    color: white;
+    background: linear-gradient(135deg, var(--accent), #ec4899);
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 30px rgba(124,58,237,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(124,58,237,0.4); }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* === Screen 1: Baseline (Sing) === */
+  .instruction {
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.5;
+    margin-bottom: 40px;
+  }
+  .instruction .highlight {
+    color: var(--orange);
+  }
+
+  /* Waveform circle */
+  .wave-circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 3px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 32px;
+    transition: border-color 0.5s, box-shadow 0.5s;
+  }
+  .wave-circle.listening {
+    border-color: var(--accent);
+    box-shadow: 0 0 40px rgba(124,58,237,0.2);
+    animation: pulse-border 2s infinite ease-in-out;
+  }
+  .wave-circle.success {
+    border-color: var(--green);
+    box-shadow: 0 0 60px var(--green-glow);
+  }
+  .wave-circle.squeeze {
+    border-color: var(--red);
+    box-shadow: 0 0 60px var(--red-glow);
+  }
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,0.15); }
+    50% { box-shadow: 0 0 50px rgba(124,58,237,0.3); }
+  }
+
+  .wave-bars {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 80px;
+  }
+  .wave-bars .bar {
+    width: 4px;
+    border-radius: 4px;
+    background: var(--accent);
+    transition: background 0.3s;
+  }
+  .wave-circle.success .wave-bars .bar { background: var(--green); }
+  .wave-circle.squeeze .wave-bars .bar { background: var(--red); }
+
+  .timer {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  /* Score display */
+  .score-display {
+    text-align: center;
+    margin-top: 20px;
+  }
+  .score-display .label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .score-display .value {
+    font-size: 52px;
+    font-weight: 900;
+    line-height: 1;
+    transition: color 0.5s;
+  }
+  .score-display .value.good { color: var(--green); }
+  .score-display .value.bad { color: var(--red); }
+  .score-display .value.neutral { color: var(--text-dim); }
+
+  /* === Screen: Hint === */
+  .hint-text {
+    font-size: 26px;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.5;
+    color: var(--text);
+    max-width: 300px;
+  }
+  .hint-text .em {
+    color: var(--orange);
+    font-style: normal;
+  }
+
+  /* === Screen: Reward === */
+  .reward-container {
+    text-align: center;
+  }
+  .reward-icon {
+    font-size: 80px;
+    margin-bottom: 24px;
+    animation: bounce-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes bounce-in {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .reward-text {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .reward-sub {
+    font-size: 16px;
+    color: var(--text-dim);
+    margin-bottom: 40px;
+  }
+
+  /* Comparison bars */
+  .compare-bars {
+    width: 100%;
+    margin: 24px 0 40px;
+  }
+  .compare-bar-row {
+    margin-bottom: 16px;
+  }
+  .compare-bar-row .bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-dim);
+  }
+  .compare-bar-row .bar-track {
+    height: 10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .compare-bar-row .bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .bar-fill.red { background: linear-gradient(90deg, var(--red), #f97316); }
+  .bar-fill.green { background: linear-gradient(90deg, var(--green), #34d399); }
+
+  /* === Screen: Paywall === */
+  .paywall-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    background: rgba(16,185,129,0.12);
+    border: 1px solid rgba(16,185,129,0.3);
+    color: var(--green);
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .paywall-title {
+    font-size: 24px;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .paywall-sub {
+    font-size: 15px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .btn-free {
+    width: 100%;
+    padding: 16px;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    color: var(--text);
+    background: transparent;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: all 0.3s;
+  }
+  .btn-free:hover { border-color: var(--accent); background: rgba(124,58,237,0.05); }
+  .btn-pro {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    color: white;
+    background: linear-gradient(135deg, var(--accent), #ec4899);
+    cursor: pointer;
+    box-shadow: 0 4px 30px rgba(124,58,237,0.3);
+    transition: all 0.3s;
+    margin-bottom: 16px;
+  }
+  .btn-pro:hover { transform: translateY(-2px); }
+  .paywall-footer {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* === Haptic flash overlay === */
+  .flash-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 90;
+    transition: opacity 0.15s;
+  }
+  .flash-overlay.green { background: radial-gradient(circle at 50% 50%, var(--green-glow), transparent 70%); }
+  .flash-overlay.red { background: radial-gradient(circle at 50% 50%, var(--red-glow), transparent 70%); }
+  .flash-overlay.active { opacity: 1; }
+
+  /* Particles */
+  .particle-container {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 80;
+    overflow: hidden;
+  }
+  .particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* Progress dots */
+  .progress-dots {
+    display: flex;
+    gap: 8px;
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .progress-dots .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s, transform 0.3s;
+  }
+  .progress-dots .dot.active {
+    background: var(--accent);
+    transform: scale(1.3);
+  }
+  .progress-dots .dot.done {
+    background: var(--green);
+  }
+
+  /* Bottom hint */
+  .bottom-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  /* Responsive: if screen is too small, scale down */
+  @media (max-height: 880px) {
+    .phone { transform: scale(0.85); transform-origin: center center; }
+  }
+  @media (max-height: 750px) {
+    .phone { transform: scale(0.7); transform-origin: center center; }
+  }
+  @media (max-width: 420px) {
+    .phone { width: 100vw; height: 100vh; border-radius: 0; border: none; }
+    .phone .notch { display: none; }
+  }
+
+  /* Annotation panel */
+  .annotation {
+    position: fixed;
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 320px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    z-index: 200;
+    transition: opacity 0.5s;
+  }
+  .annotation h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .annotation code {
+    background: rgba(6,182,212,0.1);
+    color: #06b6d4;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'SF Mono', monospace;
+  }
+  .annotation .state-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .state-baseline { background: rgba(245,158,11,0.12); color: var(--orange); }
+  .state-try { background: rgba(124,58,237,0.12); color: var(--accent); }
+  .state-reward { background: rgba(16,185,129,0.12); color: var(--green); }
+  .state-convert { background: rgba(236,72,153,0.12); color: #ec4899; }
+
+  @media (max-width: 880px) { .annotation { display: none; } }
+</style>
+</head>
+<body>
+
+<!-- Phone mockup -->
+<div class="phone" id="phone">
+  <div class="notch"></div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>📶 🔋</span>
+  </div>
+  <div class="home-indicator"></div>
+
+  <!-- Flash overlays -->
+  <div class="flash-overlay green" id="flashGreen"></div>
+  <div class="flash-overlay red" id="flashRed"></div>
+  <div class="particle-container" id="particles"></div>
+
+  <!-- Progress dots -->
+  <div class="progress-dots" id="progressDots">
+    <div class="dot active" data-step="0"></div>
+    <div class="dot" data-step="1"></div>
+    <div class="dot" data-step="2"></div>
+    <div class="dot" data-step="3"></div>
+    <div class="dot" data-step="4"></div>
+  </div>
+
+  <!-- Screen 0: Welcome -->
+  <div class="screen active" id="screen-welcome">
+    <div class="logo-icon">🎤</div>
+    <h1>高音觉醒</h1>
+    <div class="sub">30 秒，找到你的自由高音</div>
+    <button class="btn-primary" onclick="startExperience()">让我上去</button>
+  </div>
+
+  <!-- Screen 1: Baseline sing -->
+  <div class="screen" id="screen-baseline">
+    <div class="instruction">
+      唱一个你<br><span class="highlight">上不去的高音</span><br>随便唱
+    </div>
+    <div class="wave-circle listening" id="waveCircle1">
+      <div class="wave-bars" id="waveBars1"></div>
+    </div>
+    <div class="timer" id="timer1">正在聆听...</div>
+    <div class="score-display">
+      <div class="label">紧张度</div>
+      <div class="value bad" id="baselineScore">—</div>
+    </div>
+  </div>
+
+  <!-- Screen 2: Hint -->
+  <div class="screen" id="screen-hint">
+    <div style="font-size:64px;margin-bottom:32px;">😌</div>
+    <div class="hint-text">
+      别用力<br>
+      像<em class="em">叹气</em>一样<br>
+      再来一次
+    </div>
+    <div class="bottom-hint">轻触屏幕继续</div>
+  </div>
+
+  <!-- Screen 3: Try 1 -->
+  <div class="screen" id="screen-try1">
+    <div class="instruction">
+      <span class="highlight">叹气一样</span><br>再唱一次
+    </div>
+    <div class="wave-circle listening" id="waveCircle2">
+      <div class="wave-bars" id="waveBars2"></div>
+    </div>
+    <div class="timer" id="timer2">正在聆听...</div>
+    <div class="score-display">
+      <div class="label">紧张度</div>
+      <div class="value neutral" id="try1Score">—</div>
+    </div>
+  </div>
+
+  <!-- Screen 3b: "Try again" hint if no improvement -->
+  <div class="screen" id="screen-hint2">
+    <div style="font-size:64px;margin-bottom:32px;">🌊</div>
+    <div class="hint-text">
+      再<em class="em">轻</em>一点<br>
+      不要往上顶
+    </div>
+    <div class="bottom-hint">轻触屏幕继续</div>
+  </div>
+
+  <!-- Screen 4: Reward (first success) -->
+  <div class="screen" id="screen-reward1">
+    <div class="reward-container">
+      <div class="reward-icon">🟢</div>
+      <div class="reward-text">刚刚那一下松了！</div>
+      <div class="reward-sub">你的喉咙正在学会放松</div>
+      <div class="compare-bars">
+        <div class="compare-bar-row">
+          <div class="bar-label"><span>第一次</span><span id="bar1Label">紧张度 72</span></div>
+          <div class="bar-track"><div class="bar-fill red" id="bar1Fill" style="width:0%"></div></div>
+        </div>
+        <div class="compare-bar-row">
+          <div class="bar-label"><span>刚刚</span><span id="bar2Label">紧张度 48</span></div>
+          <div class="bar-track"><div class="bar-fill green" id="bar2Fill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-hint">轻触屏幕继续</div>
+  </div>
+
+  <!-- Screen 4b: Try 2 (if first didn't improve) -->
+  <div class="screen" id="screen-try2">
+    <div class="instruction">
+      最后一次<br>
+      <span class="highlight">最轻最松</span>
+    </div>
+    <div class="wave-circle listening" id="waveCircle3">
+      <div class="wave-bars" id="waveBars3"></div>
+    </div>
+    <div class="timer" id="timer3">正在聆听...</div>
+    <div class="score-display">
+      <div class="label">紧张度</div>
+      <div class="value neutral" id="try2Score">—</div>
+    </div>
+  </div>
+
+  <!-- Screen 5: Final reward -->
+  <div class="screen" id="screen-reward-final">
+    <div class="reward-container">
+      <div class="reward-icon">✨</div>
+      <div class="reward-text">对！就是这个感觉！</div>
+      <div class="reward-sub">记住刚刚那一下</div>
+      <div class="compare-bars">
+        <div class="compare-bar-row">
+          <div class="bar-label"><span>第一次</span><span id="barF1Label">紧张度 72</span></div>
+          <div class="bar-track"><div class="bar-fill red" id="barF1Fill" style="width:0%"></div></div>
+        </div>
+        <div class="compare-bar-row">
+          <div class="bar-label"><span>最后一次</span><span id="barF2Label">紧张度 35</span></div>
+          <div class="bar-track"><div class="bar-fill green" id="barF2Fill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-hint">轻触屏幕继续</div>
+  </div>
+
+  <!-- Screen 6: Paywall -->
+  <div class="screen" id="screen-paywall">
+    <div class="paywall-badge">✓ 已找到感觉</div>
+    <div class="paywall-title">你刚刚已经<br>找到一点感觉了</div>
+    <div class="paywall-sub">继续练习，让这个感觉变成习惯</div>
+    <button class="btn-free" onclick="resetExperience()">再试 3 次（免费）</button>
+    <button class="btn-pro">无限练习 · ¥18/月</button>
+    <div class="paywall-footer">7 天免费试用 · 随时取消</div>
+  </div>
+</div>
+
+<!-- Annotation panel (desktop only) -->
+<div class="annotation" id="annotation">
+  <h3>🧠 状态机注解</h3>
+  <div id="annotationContent">
+    <span class="state-badge state-baseline">STATE: welcome</span>
+    <p style="margin-top:8px">
+      用户看到一个按钮：<strong>"让我上去"</strong><br>
+      零说明、零教程。点击即开始。<br><br>
+      <code>state = "welcome"</code>
+    </p>
+  </div>
+</div>
+
+<script>
+// ============================
+// State Machine
+// ============================
+let state = 'welcome';
+let baselineSqueezeProb = 0;
+let try1SqueezeProb = 0;
+let try2SqueezeProb = 0;
+const T1 = 0.15;  // 15% improvement threshold (first try)
+const T2 = 0.05;  // 5% improvement threshold (second try, more lenient)
+
+const screens = {
+  welcome: 'screen-welcome',
+  baseline: 'screen-baseline',
+  hint: 'screen-hint',
+  try1: 'screen-try1',
+  hint2: 'screen-hint2',
+  reward1: 'screen-reward1',
+  try2: 'screen-try2',
+  rewardFinal: 'screen-reward-final',
+  paywall: 'screen-paywall'
+};
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screens[name]).classList.add('active');
+  
+  // Update progress dots
+  const stepMap = {welcome:0, baseline:1, hint:1, try1:2, hint2:2, reward1:3, try2:3, rewardFinal:4, paywall:4};
+  const currentStep = stepMap[name] || 0;
+  document.querySelectorAll('.progress-dots .dot').forEach(d => {
+    const s = parseInt(d.dataset.step);
+    d.classList.toggle('active', s === currentStep);
+    d.classList.toggle('done', s < currentStep);
+  });
+}
+
+function updateAnnotation(badge, badgeClass, html) {
+  document.getElementById('annotationContent').innerHTML = 
+    `<span class="state-badge ${badgeClass}">${badge}</span>` +
+    `<p style="margin-top:8px">${html}</p>`;
+}
+
+// ============================
+// Wave bars builder
+// ============================
+function buildWaveBars(containerId, count) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = '8px';
+    c.appendChild(bar);
+  }
+}
+buildWaveBars('waveBars1', 24);
+buildWaveBars('waveBars2', 24);
+buildWaveBars('waveBars3', 24);
+
+// ============================
+// Simulate waveform animation
+// ============================
+let waveInterval = null;
+function animateWave(barsId, intensity) {
+  const bars = document.querySelectorAll(`#${barsId} .bar`);
+  if (waveInterval) clearInterval(waveInterval);
+  waveInterval = setInterval(() => {
+    bars.forEach((bar, i) => {
+      const h = 6 + Math.random() * intensity * 60;
+      bar.style.height = h + 'px';
+      bar.style.transition = 'height 0.1s';
+    });
+  }, 100);
+}
+function stopWave(barsId) {
+  if (waveInterval) clearInterval(waveInterval);
+  document.querySelectorAll(`#${barsId} .bar`).forEach(b => {
+    b.style.height = '8px';
+    b.style.transition = 'height 0.5s';
+  });
+}
+
+// ============================
+// Simulate squeeze probability
+// ============================
+function simulateSqueeze(isRelaxed) {
+  // Simulate realistic values
+  if (!isRelaxed) {
+    // First time: high squeeze (0.55 - 0.85)
+    return 0.55 + Math.random() * 0.3;
+  } else {
+    // After relaxation hint: lower squeeze (0.25 - 0.55)
+    return 0.25 + Math.random() * 0.3;
+  }
+}
+
+// ============================
+// Flash & Particles
+// ============================
+function flash(color) {
+  const el = document.getElementById(color === 'green' ? 'flashGreen' : 'flashRed');
+  el.classList.add('active');
+  setTimeout(() => el.classList.remove('active'), 300);
+}
+
+function spawnParticles(color, count) {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.background = color;
+    p.style.left = (50 + (Math.random() - 0.5) * 40) + '%';
+    p.style.top = (50 + (Math.random() - 0.5) * 20) + '%';
+    p.style.opacity = '1';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 100 + Math.random() * 200;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+    p.style.transition = `all ${0.8 + Math.random() * 0.5}s cubic-bezier(0.16, 1, 0.3, 1)`;
+    container.appendChild(p);
+    requestAnimationFrame(() => {
+      p.style.transform = `translate(${dx}px, ${dy}px)`;
+      p.style.opacity = '0';
+    });
+    setTimeout(() => p.remove(), 1500);
+  }
+}
+
+// ============================
+// Score display with animation
+// ============================
+function animateScore(elementId, targetScore, good) {
+  const el = document.getElementById(elementId);
+  el.className = 'value ' + (good ? 'good' : 'bad');
+  let current = 50;
+  const step = (targetScore - current) / 20;
+  let frame = 0;
+  const interval = setInterval(() => {
+    current += step;
+    frame++;
+    el.textContent = Math.round(current);
+    if (frame >= 20) {
+      el.textContent = targetScore;
+      clearInterval(interval);
+    }
+  }, 40);
+}
+
+// ============================
+// MAIN FLOW
+// ============================
+function startExperience() {
+  state = 'baseline';
+  showScreen('baseline');
+  updateAnnotation('STATE: baseline', 'state-baseline',
+    '录音中。实时计算 <code>squeeze_prob</code><br><br>' +
+    '<code>baseline = avg(squeeze_prob)</code><br><br>' +
+    '这里建立用户的"紧张基线"——第一次唱高音通常 squeeze 很高。');
+  
+  // Simulate recording for 4 seconds
+  animateWave('waveBars1', 0.7);
+  document.getElementById('waveCircle1').className = 'wave-circle squeeze';
+  
+  setTimeout(() => {
+    baselineSqueezeProb = simulateSqueeze(false);
+    const score = Math.round(100 * (1 - baselineSqueezeProb));
+    animateScore('baselineScore', score, false);
+    flash('red');
+    document.getElementById('timer1').textContent = '检测完成';
+  }, 2500);
+  
+  setTimeout(() => {
+    stopWave('waveBars1');
+    // Move to hint
+    state = 'hint';
+    showScreen('hint');
+    updateAnnotation('STATE: hint', 'state-try',
+      '给出唯一一句指令：<br><strong>"别用力，像叹气一样，再来一次"</strong><br><br>' +
+      '不解释原理。只给行动指令。<br><br>' +
+      '<code>baseline_squeeze = ' + baselineSqueezeProb.toFixed(2) + '</code>');
+  }, 4000);
+}
+
+// Hint screen → tap to continue
+document.getElementById('screen-hint').addEventListener('click', () => {
+  if (state !== 'hint') return;
+  state = 'try1';
+  showScreen('try1');
+  updateAnnotation('STATE: try1', 'state-try',
+    '用户第二次唱。实时计算 <code>current_squeeze</code><br><br>' +
+    '<code>delta = baseline - current</code><br>' +
+    '<code>if delta > T1 (0.15) → reward</code><br>' +
+    '<code>else → hint again</code>');
+  
+  animateWave('waveBars2', 0.5);
+  document.getElementById('waveCircle2').className = 'wave-circle listening';
+  
+  setTimeout(() => {
+    try1SqueezeProb = simulateSqueeze(true);
+    const score = Math.round(100 * (1 - try1SqueezeProb));
+    const delta = baselineSqueezeProb - try1SqueezeProb;
+    const improved = delta > T1;
+    
+    if (improved) {
+      document.getElementById('waveCircle2').className = 'wave-circle success';
+      flash('green');
+      spawnParticles('var(--green)', 20);
+    }
+    animateScore('try1Score', score, improved);
+    document.getElementById('timer2').textContent = '检测完成';
+    
+    setTimeout(() => {
+      stopWave('waveBars2');
+      if (improved) {
+        state = 'reward1';
+        showScreen('reward1');
+        flash('green');
+        spawnParticles('#10b981', 30);
+        
+        const bScore = Math.round(100 * (1 - baselineSqueezeProb));
+        const tScore = score;
+        document.getElementById('bar1Label').textContent = '紧张度 ' + (100-bScore);
+        document.getElementById('bar2Label').textContent = '紧张度 ' + (100-tScore);
+        setTimeout(() => {
+          document.getElementById('bar1Fill').style.width = (100-bScore) + '%';
+          document.getElementById('bar2Fill').style.width = (100-tScore) + '%';
+        }, 300);
+        
+        updateAnnotation('STATE: reward ✓', 'state-reward',
+          '<strong>改善检测到！</strong><br><br>' +
+          '<code>delta = ' + delta.toFixed(2) + ' > T1 (' + T1 + ')</code><br><br>' +
+          '立刻触发奖励：大字 + 绿色闪光 + 粒子<br>' +
+          '"刚刚那一下松了！"<br><br>' +
+          '制造"觉醒瞬间"——行为强化。');
+      } else {
+        state = 'hint2';
+        showScreen('hint2');
+        updateAnnotation('STATE: hint2 (no improvement)', 'state-try',
+          '<code>delta = ' + delta.toFixed(2) + ' < T1 (' + T1 + ')</code><br><br>' +
+          '没有明显改善。但<strong>不说失败</strong>。<br>' +
+          '只说："再轻一点，不要往上顶"<br><br>' +
+          '下一轮使用更宽松的阈值：<br>' +
+          '<code>T2 = ' + T2 + '</code> (只要 5% 改善就奖励)');
+      }
+    }, 1500);
+  }, 3000);
+});
+
+// Reward 1 → tap → final reward screen (skip try2 in success path)
+document.getElementById('screen-reward1').addEventListener('click', () => {
+  if (state !== 'reward1') return;
+  state = 'rewardFinal';
+  showScreen('rewardFinal');
+  flash('green');
+  spawnParticles('#10b981', 40);
+  
+  const bScore = Math.round(100 * (1 - baselineSqueezeProb));
+  const finalScore = Math.max(15, bScore - 20 - Math.floor(Math.random()*15));
+  document.getElementById('barF1Label').textContent = '紧张度 ' + (100-bScore);
+  document.getElementById('barF2Label').textContent = '紧张度 ' + finalScore;
+  setTimeout(() => {
+    document.getElementById('barF1Fill').style.width = (100-bScore) + '%';
+    document.getElementById('barF2Fill').style.width = finalScore + '%';
+  }, 300);
+  
+  updateAnnotation('STATE: reinforce ✓✓', 'state-reward',
+    '<strong>"对！就是这个感觉！"</strong><br>' +
+    '<strong>"记住刚刚那一下"</strong><br><br>' +
+    '反复强化条件反射。<br><br>' +
+    '接下来在情绪最高点——<strong>转化付费</strong>。');
+});
+
+// Hint2 → tap → try2
+document.getElementById('screen-hint2').addEventListener('click', () => {
+  if (state !== 'hint2') return;
+  state = 'try2';
+  showScreen('try2');
+  updateAnnotation('STATE: try2 (lenient)', 'state-try',
+    '最后一次尝试，使用宽松阈值<br><br>' +
+    '<code>if delta > T2 (0.05) → reward</code><br><br>' +
+    '即使只改善 5%，也给正向反馈。<br>' +
+    '"行为强化系统"，不是"测评系统"');
+  
+  animateWave('waveBars3', 0.4);
+  document.getElementById('waveCircle3').className = 'wave-circle listening';
+  
+  setTimeout(() => {
+    // Lenient: almost always succeed
+    try2SqueezeProb = baselineSqueezeProb - T2 - Math.random() * 0.2;
+    try2SqueezeProb = Math.max(0.1, try2SqueezeProb);
+    const score = Math.round(100 * (1 - try2SqueezeProb));
+    const delta = baselineSqueezeProb - try2SqueezeProb;
+    
+    document.getElementById('waveCircle3').className = 'wave-circle success';
+    flash('green');
+    spawnParticles('#10b981', 25);
+    animateScore('try2Score', score, true);
+    document.getElementById('timer3').textContent = '检测完成';
+    
+    setTimeout(() => {
+      stopWave('waveBars3');
+      state = 'rewardFinal';
+      showScreen('rewardFinal');
+      flash('green');
+      spawnParticles('#10b981', 40);
+      
+      const bScore = Math.round(100 * (1 - baselineSqueezeProb));
+      const fScore = Math.round(100 * try2SqueezeProb);
+      document.getElementById('barF1Label').textContent = '紧张度 ' + (100-bScore);
+      document.getElementById('barF2Label').textContent = '紧张度 ' + fScore;
+      setTimeout(() => {
+        document.getElementById('barF1Fill').style.width = (100-bScore) + '%';
+        document.getElementById('barF2Fill').style.width = fScore + '%';
+      }, 300);
+      
+      updateAnnotation('STATE: reward (lenient) ✓', 'state-reward',
+        '<strong>"对！就是这个感觉！"</strong><br><br>' +
+        '<code>delta = ' + delta.toFixed(2) + ' > T2 (' + T2 + ')</code><br><br>' +
+        '虽然改善不大，但给正向反馈。<br>' +
+        '宁可"偏乐观"也不让用户觉得失败。');
+    }, 1500);
+  }, 3000);
+});
+
+// Final reward → tap → paywall
+document.getElementById('screen-reward-final').addEventListener('click', () => {
+  if (state !== 'rewardFinal') return;
+  state = 'paywall';
+  showScreen('paywall');
+  updateAnnotation('STATE: convert 💰', 'state-convert',
+    '在用户<strong>情绪最高的时刻</strong>出现付费转化。<br><br>' +
+    '用户心理：<br>' +
+    '> "我刚刚差一点，再来一次就行了"<br><br>' +
+    '两个选项：<br>' +
+    '① 再试 3 次（免费）→ 保留<br>' +
+    '② 无限练习 ¥18/月 → 转化<br><br>' +
+    '核心指标：<strong>觉醒率</strong><br>' +
+    '<code>触发过奖励的用户 / 总用户</code><br>' +
+    '> 40% = 有爆的可能');
+});
+
+function resetExperience() {
+  state = 'welcome';
+  showScreen('welcome');
+  // Reset all bar fills
+  ['bar1Fill','bar2Fill','barF1Fill','barF2Fill'].forEach(id => {
+    document.getElementById(id).style.width = '0%';
+  });
+  ['baselineScore','try1Score','try2Score'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+    document.getElementById(id).className = 'value neutral';
+  });
+  updateAnnotation('STATE: welcome', 'state-baseline',
+    '用户点击"再试 3 次"回到起点。<br><br>' +
+    '每次循环都在强化"放松→奖励"的条件反射。');
+}
+</script>
+
+</body>
+</html>
