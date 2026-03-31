@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>声乐问题 × 生理机理 — Vibesing 高音觉醒</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050508;--card:rgba(255,255,255,0.025);
+  --glass:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.06);
+  --cyan:#00e5ff;--pink:#ff2d78;--purple:#b44aff;
+  --green:#00ff88;--yellow:#ffd700;--orange:#ff8a3d;--red:#ff3b5c;
+  --text:#e4e4f0;--dim:#5e5e74;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);overflow-x:hidden;
+}
+
+/* ===== AURORA BG ===== */
+.aurora{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 90% 50% at 10% 20%,rgba(0,229,255,0.06),transparent),
+    radial-gradient(ellipse 70% 60% at 90% 80%,rgba(180,74,255,0.05),transparent),
+    radial-gradient(ellipse 80% 40% at 50% 50%,rgba(255,45,120,0.03),transparent);
+  animation:hueShift 20s ease-in-out infinite alternate;
+}
+@keyframes hueShift{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(20deg)}}
+
+/* ===== CONTAINER ===== */
+.container{position:relative;z-index:1;max-width:1300px;margin:0 auto;padding:0 24px}
+
+/* ===== HERO ===== */
+.hero{
+  padding:100px 0 60px;text-align:center;
+}
+.hero-tag{
+  display:inline-block;
+  padding:6px 18px;border-radius:50px;font-size:0.72rem;
+  letter-spacing:2px;text-transform:uppercase;
+  border:1px solid rgba(0,229,255,0.2);color:var(--cyan);
+  background:rgba(0,229,255,0.06);margin-bottom:24px;
+}
+.hero h1{
+  font-size:clamp(2.5rem,6vw,4.2rem);font-weight:800;
+  line-height:1.15;margin-bottom:16px;
+  background:linear-gradient(135deg,#fff 20%,var(--cyan) 60%,var(--purple) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero p{
+  max-width:680px;margin:0 auto;color:var(--dim);font-size:1.05rem;line-height:1.7;
+}
+
+/* ===== LARYNX SVG DIAGRAM ===== */
+.anatomy-section{
+  padding:60px 0;display:flex;justify-content:center;
+}
+.larynx-diagram{
+  width:100%;max-width:800px;position:relative;
+}
+.larynx-svg{width:100%;height:auto}
+
+/* ===== CATEGORY NAV ===== */
+.cat-nav{
+  display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+  padding:20px 0 40px;position:sticky;top:0;z-index:50;
+  background:linear-gradient(180deg,var(--bg) 60%,transparent);
+  padding-top:16px;
+}
+.cat-btn{
+  padding:8px 18px;border:1px solid var(--border);
+  border-radius:50px;background:var(--glass);
+  color:var(--dim);font-size:0.78rem;font-weight:600;
+  cursor:pointer;transition:all 0.3s;letter-spacing:0.5px;
+  white-space:nowrap;
+}
+.cat-btn:hover,.cat-btn.active{
+  border-color:var(--cyan);color:var(--cyan);
+  background:rgba(0,229,255,0.08);
+  box-shadow:0 0 16px rgba(0,229,255,0.1);
+}
+
+/* ===== PROBLEM CARDS ===== */
+.problems-grid{
+  display:grid;grid-template-columns:1fr;gap:24px;
+  padding-bottom:80px;
+}
+.problem-card{
+  display:grid;grid-template-columns:360px 1fr;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:24px;overflow:hidden;
+  transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+  position:relative;
+}
+.problem-card:hover{
+  transform:translateY(-4px);
+  border-color:rgba(255,255,255,0.1);
+  box-shadow:0 20px 60px rgba(0,0,0,0.4);
+}
+.problem-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);
+}
+
+/* Left: Anatomy illustration */
+.card-anatomy{
+  padding:32px;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  position:relative;overflow:hidden;
+  border-right:1px solid var(--border);
+}
+.card-anatomy::before{
+  content:'';position:absolute;inset:0;
+  opacity:0.06;
+}
+
+/* Anatomy SVG inline */
+.anatomy-visual{
+  width:200px;height:200px;position:relative;
+  margin-bottom:16px;
+}
+.anatomy-visual svg{width:100%;height:100%}
+
+.anatomy-label{
+  font-size:0.85rem;font-weight:700;text-align:center;
+  letter-spacing:0.5px;margin-bottom:4px;
+}
+.anatomy-sub{
+  font-size:0.7rem;color:var(--dim);text-align:center;
+}
+
+/* Right: Content */
+.card-content{padding:32px;display:flex;flex-direction:column}
+
+.card-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px}
+.card-icon{
+  width:48px;height:48px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;flex-shrink:0;
+}
+.card-titlebox h3{font-size:1.15rem;font-weight:700;margin-bottom:3px}
+.card-titlebox .en{font-size:0.72rem;color:var(--dim);font-weight:500}
+
+/* Severity meter */
+.severity{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.sev-label{font-size:0.7rem;color:var(--dim);width:50px}
+.sev-track{flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden}
+.sev-fill{height:100%;border-radius:3px;transition:width 1.5s cubic-bezier(0.16,1,0.3,1)}
+.sev-text{font-size:0.7rem;font-weight:700;min-width:36px;text-align:right}
+
+/* Description */
+.card-desc{
+  font-size:0.85rem;color:var(--dim);line-height:1.7;
+  margin-bottom:18px;flex:1;
+}
+.card-desc strong{color:var(--text)}
+
+/* Physiology detail blocks */
+.physio-blocks{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.physio-block{
+  display:flex;gap:12px;
+  padding:12px 14px;border-radius:12px;
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.04);
+}
+.pb-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.pb-text{font-size:0.78rem;color:var(--dim);line-height:1.6}
+.pb-text strong{color:var(--text);font-weight:600}
+
+/* Acoustic signature */
+.acoustic{
+  padding:14px;border-radius:12px;
+  background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);
+}
+.acoustic-title{
+  font-size:0.68rem;color:var(--cyan);font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;
+}
+.acoustic-features{display:flex;flex-wrap:wrap;gap:6px}
+.af-tag{
+  font-size:0.68rem;padding:4px 10px;border-radius:8px;
+  background:rgba(0,229,255,0.06);color:rgba(0,229,255,0.8);
+  border:1px solid rgba(0,229,255,0.1);
+  font-variant-numeric:tabular-nums;
+}
+
+/* ===== COLOR THEMES ===== */
+.problem-card[data-cat="glottis"] .card-anatomy::before{background:linear-gradient(135deg,var(--red),var(--pink))}
+.problem-card[data-cat="glottis"] .card-icon{background:rgba(255,59,92,0.1)}
+.problem-card[data-cat="glottis"] .sev-fill{background:linear-gradient(90deg,var(--green),var(--red))}
+.problem-card[data-cat="glottis"] .sev-text{color:var(--red)}
+
+.problem-card[data-cat="tract"] .card-anatomy::before{background:linear-gradient(135deg,var(--purple),var(--cyan))}
+.problem-card[data-cat="tract"] .card-icon{background:rgba(180,74,255,0.1)}
+.problem-card[data-cat="tract"] .sev-fill{background:linear-gradient(90deg,var(--cyan),var(--purple))}
+.problem-card[data-cat="tract"] .sev-text{color:var(--purple)}
+
+.problem-card[data-cat="breath"] .card-anatomy::before{background:linear-gradient(135deg,var(--green),var(--cyan))}
+.problem-card[data-cat="breath"] .card-icon{background:rgba(0,255,136,0.1)}
+.problem-card[data-cat="breath"] .sev-fill{background:linear-gradient(90deg,var(--yellow),var(--green))}
+.problem-card[data-cat="breath"] .sev-text{color:var(--green)}
+
+.problem-card[data-cat="register"] .card-anatomy::before{background:linear-gradient(135deg,var(--orange),var(--yellow))}
+.problem-card[data-cat="register"] .card-icon{background:rgba(255,138,61,0.1)}
+.problem-card[data-cat="register"] .sev-fill{background:linear-gradient(90deg,var(--yellow),var(--orange))}
+.problem-card[data-cat="register"] .sev-text{color:var(--orange)}
+
+.problem-card[data-cat="mix"] .card-anatomy::before{background:linear-gradient(135deg,var(--purple),var(--pink))}
+.problem-card[data-cat="mix"] .card-icon{background:rgba(180,74,255,0.1)}
+.problem-card[data-cat="mix"] .sev-fill{background:linear-gradient(90deg,var(--pink),var(--purple))}
+.problem-card[data-cat="mix"] .sev-text{color:var(--purple)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:800px){
+  .problem-card{grid-template-columns:1fr}
+  .card-anatomy{border-right:none;border-bottom:1px solid var(--border);padding:24px}
+  .anatomy-visual{width:140px;height:140px}
+}
+@media(max-width:520px){
+  .hero h1{font-size:2rem}
+  .cat-btn{font-size:0.7rem;padding:6px 12px}
+  .card-content{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora"></div>
+
+<div class="container">
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-tag">🔬 Vocal Physiology × Acoustics</div>
+    <h1>声乐问题<br>生理机理图鉴</h1>
+    <p>每一个声乐问题背后，都有精确的生理学解释。理解你的喉头、声带、共鸣腔发生了什么，才能真正解决问题。</p>
+  </section>
+
+  <!-- ===== CATEGORY NAV ===== -->
+  <nav class="cat-nav">
+    <button class="cat-btn active" data-filter="all">全部</button>
+    <button class="cat-btn" data-filter="glottis">🔴 声门问题</button>
+    <button class="cat-btn" data-filter="tract">🟣 声道问题</button>
+    <button class="cat-btn" data-filter="breath">🟢 气息问题</button>
+    <button class="cat-btn" data-filter="register">🟠 声区问题</button>
+    <button class="cat-btn" data-filter="mix">💜 混声问题</button>
+  </nav>
+
+  <!-- ===== PROBLEM CARDS ===== -->
+  <div class="problems-grid" id="problemsGrid">
+    <!-- Populated by JS -->
+  </div>
+
+</div>
+
+<script>
+const PROBLEMS = [
+  {
+    cat: 'glottis',
+    icon: '🔴',
+    name: '挤卡 · Vocal Squeeze',
+    en: 'Glottal Hyperadduction / Constriction',
+    severity: 85,
+    sevLabel: '严重',
+    desc: '声带在高音区<strong>过度挤压闭合</strong>，喉内肌群（特别是甲杓肌和侧环杓肌）过度收缩，导致声门上方的假声带也被带入振动。声音变得紧、尖、刺耳，音色中噪声成分急剧增加。',
+    physio: [
+      { icon: '🫁', text: '<strong>甲杓肌（TA）过度激活</strong>：声带体增厚变短，内收力过大，声门闭合相（CQ）异常延长至70%以上，正常状态应为40-60%' },
+      { icon: '🦴', text: '<strong>喉位上升</strong>：舌骨上肌群代偿性紧张，拉动喉头上移2-3cm，压缩咽腔共鸣空间，F1共振峰异常升高' },
+      { icon: '🔊', text: '<strong>假声带内收</strong>：室褶（假声带）被迫参与振动，产生粗糙的"双音源"效应，声音质量急剧下降' },
+    ],
+    acoustic: ['HNR < 12dB', 'Jitter > 2%', 'CQ > 0.7', 'Spectral Tilt ↑', 'F0微扰 ↑'],
+    anatomy: 'squeeze',
+  },
+  {
+    cat: 'glottis',
+    icon: '🔴',
+    name: '漏气 · Breathy Voice',
+    en: 'Glottal Insufficiency / Hypoadduction',
+    severity: 55,
+    sevLabel: '中等',
+    desc: '声带闭合不全，声门在振动过程中<strong>始终存在间隙</strong>，大量气流未转化为声能，声音虚弱且伴有明显气声。常见于初学者或声带疲劳后。',
+    physio: [
+      { icon: '🫁', text: '<strong>环杓后肌（PCA）残余张力</strong>：声带外展肌未完全放松，导致声门后联合处持续存在三角形间隙（posterior glottal gap）' },
+      { icon: '💨', text: '<strong>声门下压不足</strong>：呼吸肌群支持弱，声门下压力仅1-3 cmH₂O（正常唱歌需5-15 cmH₂O），声带振动幅度不足' },
+      { icon: '🔬', text: '<strong>H1-H2差值增大</strong>：第一谐波与第二谐波能量差 > 6dB，说明声门波形偏正弦化，缺乏高次谐波能量' },
+    ],
+    acoustic: ['H1-H2 > 6dB', 'HNR 降低', 'Energy ↓↓', '高频衰减', 'CPP < 10dB'],
+    anatomy: 'breathy',
+  },
+  {
+    cat: 'glottis',
+    icon: '🔴',
+    name: '声带打击 · Hard Glottal Attack',
+    en: 'Glottal Coup / Hard Onset',
+    severity: 65,
+    sevLabel: '中高',
+    desc: '每个音的起始瞬间声带<strong>猛烈撞击</strong>，类似咳嗽前的声门闭锁然后爆破。长期使用会导致声带结节或息肉。',
+    physio: [
+      { icon: '💥', text: '<strong>声门闭锁-爆破模式</strong>：声门先完全闭合加压，然后瞬间爆开。声门下压力在起始前升至20+ cmH₂O，是正常起始的3-4倍' },
+      { icon: '🔬', text: '<strong>声带碰撞力增大</strong>：声带接触面的最大接触压力可达正常的5倍，反复微创伤导致声带边缘水肿' },
+      { icon: '⏱️', text: '<strong>起始时间（VOT）异常</strong>：正常柔和起始VOT约20-40ms，硬起始 < 5ms，波形上可见明显的脉冲尖峰' },
+    ],
+    acoustic: ['起始Peak尖锐', 'Rise Time < 5ms', '低频瞬态 ↑', 'Jitter 起始段 ↑', '能量突变'],
+    anatomy: 'hardattack',
+  },
+  {
+    cat: 'tract',
+    icon: '🟣',
+    name: '鼻音过重 · Hypernasality',
+    en: 'Velopharyngeal Insufficiency',
+    severity: 50,
+    sevLabel: '中等',
+    desc: '软腭下垂未能完全关闭鼻咽通道，声能<strong>过多经鼻腔泄漏</strong>。口腔共鸣不足，音色闷暗，元音清晰度下降。',
+    physio: [
+      { icon: '👃', text: '<strong>腭帆张肌/提肌无力</strong>：软腭（velum）上提不足，鼻咽端口面积 > 20mm²（正常歌唱应 < 5mm²），鼻腔成为并联共鸣器' },
+      { icon: '🔊', text: '<strong>口鼻声能分配异常</strong>：正常歌唱鼻腔声能占比 < 10%，鼻音过重时可达30-50%，在1000Hz附近产生反共振（零点）' },
+      { icon: '📊', text: '<strong>共振峰带宽增大</strong>：F1带宽从正常的60-80Hz增至150-200Hz，元音辨识度急剧下降，特别影响/a//e/等开口元音' },
+    ],
+    acoustic: ['A1-P1 异常', 'F1带宽 > 150Hz', '1kHz反共振', '鼻音率 > 30%', '元音清晰度 ↓'],
+    anatomy: 'nasal',
+  },
+  {
+    cat: 'tract',
+    icon: '🟣',
+    name: '喉位过高 · High Larynx',
+    en: 'Laryngeal Elevation',
+    severity: 70,
+    sevLabel: '中高',
+    desc: '喉头随音高上升而<strong>过度上提</strong>，咽腔长度缩短30-40%，共鸣空间被压缩。声音变尖变薄，失去胸声温暖感。是"挤卡"的前兆和伴随症状。',
+    physio: [
+      { icon: '⬆️', text: '<strong>舌骨上肌群过度牵拉</strong>：二腹肌、茎突舌骨肌将舌骨和喉头上拉。喉位每上移1cm，咽腔容积减少约15%' },
+      { icon: '🎵', text: '<strong>F1/F2共振峰位移</strong>：咽长缩短导致所有共振峰频率上升150-300Hz。歌者共振峰（Singer\'s Formant, 2.5-3.5kHz）消失' },
+      { icon: '😣', text: '<strong>环甲肌受限</strong>：喉头上提使环甲关节运动空间减小，音高调节转为靠声带张力硬撑，振动效率下降' },
+    ],
+    acoustic: ['F1 上移 > 200Hz', 'Singer\'s Formant 消失', 'Spectral Centroid ↑', '高频能量集中', '泛音结构变窄'],
+    anatomy: 'highlarynx',
+  },
+  {
+    cat: 'breath',
+    icon: '🟢',
+    name: '气息不足 · Weak Breath Support',
+    en: 'Insufficient Subglottal Pressure',
+    severity: 60,
+    sevLabel: '中等',
+    desc: '横膈膜和腹肌<strong>支撑力不够</strong>，声门下压力不足以维持稳定的声带振动。声音虚弱，长音后段明显衰减，高音区力量不足。',
+    physio: [
+      { icon: '🫁', text: '<strong>横膈膜下降不足</strong>：吸气时横膈膜仅下降2-3cm（训练良好的歌手可达7-10cm），肺活量利用率低于50%' },
+      { icon: '💪', text: '<strong>appoggio缺失</strong>：腹直肌与横膈膜的对抗平衡（意大利声乐术语appoggio）未建立，呼气流量控制不稳' },
+      { icon: '📉', text: '<strong>声门下压力衰减</strong>：长音后段Ps从8cmH₂O降至3cmH₂O以下，无法维持声带振动的最低压力阈值' },
+    ],
+    acoustic: ['Energy 后段衰减 > 6dB', '长音 Shimmer ↑', 'F0 后段下降', '声门波幅减小', 'HNR 后段 ↓'],
+    anatomy: 'breath',
+  },
+  {
+    cat: 'breath',
+    icon: '🟢',
+    name: '气息漏出 · Air Leak',
+    en: 'Excessive Airflow / Pressed-Breathy',
+    severity: 45,
+    sevLabel: '中低',
+    desc: '呼气流量过大，声带<strong>无法有效转化气流为声能</strong>。表现为唱几句就气短，声音伴有"嘶嘶"的气流声。',
+    physio: [
+      { icon: '💨', text: '<strong>呼吸肌群控制粗放</strong>：腹横肌和肋间内肌协调不足，呼气流速 > 300 mL/s（正常歌唱100-200 mL/s），大量气流浪费' },
+      { icon: '⚖️', text: '<strong>流-阻平衡失调</strong>：声门电阻过低，Bernoulli效应不足以维持有效振动。正常流–阻比约1:3，漏气时接近1:1' },
+      { icon: '⏱️', text: '<strong>最大发声时间缩短</strong>：正常MPT > 15秒，气息漏出严重时 < 8秒，s/z ratio > 1.4（正常应 ≤ 1.2）' },
+    ],
+    acoustic: ['MPT < 10s', 's/z > 1.4', '高频噪声 ↑', 'Energy 不稳', 'Shimmer ↑'],
+    anatomy: 'airleak',
+  },
+  {
+    cat: 'register',
+    icon: '🟠',
+    name: '换声区断裂 · Register Break',
+    en: 'Passaggio Crack / Voice Break',
+    severity: 75,
+    sevLabel: '较严重',
+    desc: '在胸声与头声的转换区域（passaggio, 男声约E4-G4, 女声约E5-G5），声带<strong>突然切换振动模式</strong>，产生明显的音色断裂或音高跳跃。',
+    physio: [
+      { icon: '🔄', text: '<strong>TA-CT肌群切换突变</strong>：甲杓肌（胸声主导）和环甲肌（头声主导）交接不平滑。正常混声需两组肌群同时渐变协作' },
+      { icon: '📐', text: '<strong>声带振动模式跳变</strong>：从全长全厚振动突变为边缘振动，振动接触面积瞬间减少60%+，声压急剧下降8-12dB' },
+      { icon: '🎯', text: '<strong>临界频率不稳定</strong>：在passaggio频率附近（约350-500Hz），声带在两种振动模态间反复跳动，产生"破音"' },
+    ],
+    acoustic: ['F0 突变 > 50Hz', 'Energy 突降 > 8dB', '频谱不连续', 'Jitter 峰值', '子谐波出现'],
+    anatomy: 'break',
+  },
+  {
+    cat: 'register',
+    icon: '🟠',
+    name: '大白嗓 · Yelling / Belting Strain',
+    en: 'Untrained Chest-dominant Belting',
+    severity: 80,
+    sevLabel: '严重',
+    desc: '纯胸声<strong>硬推到高音区</strong>，声带全长全厚振动，甲杓肌过度主导。声音洪亮但粗糙，声带承受极大碰撞力。',
+    physio: [
+      { icon: '💪', text: '<strong>甲杓肌（TA）全程主导</strong>：声带保持胸声模式下的全厚接触振动，不引入环甲肌拉伸。CQ > 65%，声门碰撞力是正常的3-5倍' },
+      { icon: '📢', text: '<strong>声门下压力爆表</strong>：Ps可达25-40 cmH₂O（正常高音约10-15 cmH₂O），声带每秒承受300-500次高压碰撞' },
+      { icon: '⚠️', text: '<strong>声带水肿→结节路径</strong>：反复微创伤 → 声带中段Reinke层水肿 → 反复损伤处纤维化 → 声带结节。临床统计显示此为结节最常见成因' },
+    ],
+    acoustic: ['Energy > -5dB', 'Spectral Tilt ↓↓', 'HNR < 10dB', 'CPP < 8dB', '谐波失真 ↑'],
+    anatomy: 'yelling',
+  },
+  {
+    cat: 'mix',
+    icon: '💜',
+    name: '假声主导 · Falsetto-Heavy Mix',
+    en: 'Excessive CT Dominance',
+    severity: 40,
+    sevLabel: '中低',
+    desc: '混声中<strong>头声比例过高</strong>，环甲肌过度主导，声带过度拉伸变薄。音色空洞飘渺，缺乏力量感和穿透力。',
+    physio: [
+      { icon: '🎵', text: '<strong>环甲肌（CT）过度拉伸</strong>：声带被拉长变薄，仅边缘参与振动。声带接触面积 < 30%，缺乏胸声的"体"（body）感' },
+      { icon: '📊', text: '<strong>频谱能量上移</strong>：基频以上3-5个谐波能量偏弱，声音缺乏"底盘"。高频能量占比过高，主观感受为"虚""飘"' },
+      { icon: '🔊', text: '<strong>声压受限</strong>：纯头声模式下SPL上限约85dB（混声可达100dB+），动态表现力严重受限' },
+    ],
+    acoustic: ['Spectral Tilt > 15dB/oct', '低频能量 ↓', 'CQ < 0.35', 'SPL < 85dB', '泛音稀疏'],
+    anatomy: 'falsetto',
+  },
+  {
+    cat: 'mix',
+    icon: '💜',
+    name: '混声失衡 · Mix Voice Imbalance',
+    en: 'TA/CT Coordination Deficit',
+    severity: 55,
+    sevLabel: '中等',
+    desc: '混声状态<strong>不稳定</strong>，胸声和头声成分比例随音高变化波动不平滑。音色时亮时暗，缺乏一致性。',
+    physio: [
+      { icon: '⚖️', text: '<strong>TA/CT拮抗失衡</strong>：甲杓肌和环甲肌的协同精度不足。理想混声需两组肌群保持动态平衡，力量比随音高平滑渐变' },
+      { icon: '🔄', text: '<strong>声带接触商（CQ）波动</strong>：稳定混声CQ约0.4-0.55，失衡时CQ在0.3-0.7之间不规则波动，表现为音色忽明忽暗' },
+      { icon: '🎯', text: '<strong>共鸣腔追踪滞后</strong>：声带振动模式变化时，咽腔/口腔形态未能同步调整，共振峰匹配（formant tuning）失败' },
+    ],
+    acoustic: ['CQ 变异系数 > 15%', 'Spectral Flux ↑', '音色一致性 ↓', 'F1/F2 不稳', '长音shimmer ↑'],
+    anatomy: 'mixbalance',
+  },
+];
+
+// ===== ANATOMY SVGs =====
+const ANATOMY_SVGS = {
+  squeeze: `<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Throat outline -->
+    <ellipse cx="100" cy="100" rx="60" ry="85" stroke="rgba(255,59,92,0.3)" stroke-width="1.5" fill="none"/>
+    <!-- Vocal folds - squeezed -->
+    <path d="M60 95 Q80 100 100 95 Q120 100 140 95" stroke="#ff3b5c" stroke-width="3" fill="none">
+      <animate attributeName="d" values="M60 95 Q80 100 100 95 Q120 100 140 95;M65 95 Q80 98 100 93 Q120 98 135 95;M60 95 Q80 100 100 95 Q120 100 140 95" dur="0.8s" repeatCount="indefinite"/>
+    </path>
+    <path d="M60 105 Q80 100 100 105 Q120 100 140 105" stroke="#ff3b5c" stroke-width="3" fill="none">
+      <animate attributeName="d" values="M60 105 Q80 100 100 105 Q120 100 140 105;M65 105 Q80 102 100 107 Q120 102 135 105;M60 105 Q80 100 100 105 Q120 100 140 105" dur="0.8s" repeatCount="indefinite"/>
+    </path>
+    <!-- False folds activated -->
+    <path d="M55 80 Q100 75 145 80" stroke="rgba(255,45,120,0.5)" stroke-width="2" stroke-dasharray="4 3" fill="none"/>
+    <path d="M55 120 Q100 125 145 120" stroke="rgba(255,45,120,0.5)" stroke-width="2" stroke-dasharray="4 3" fill="none"/>
+    <!-- Squeeze pressure arrows -->
+    <path d="M40 100 L58 100" stroke="#ff2d78" stroke-width="2" marker-end="url(#arrowR)"/>
+    <path d="M160 100 L142 100" stroke="#ff2d78" stroke-width="2" marker-end="url(#arrowR)"/>
+    <!-- Upward force -->
+    <path d="M100 140 L100 125" stroke="#ff8a3d" stroke-width="1.5" marker-end="url(#arrowR)" stroke-dasharray="3 2"/>
+    <text x="100" y="155" text-anchor="middle" fill="rgba(255,138,61,0.6)" font-size="8">喉位上提</text>
+    <text x="100" y="70" text-anchor="middle" fill="rgba(255,45,120,0.6)" font-size="8">假声带内收</text>
+    <text x="100" y="175" text-anchor="middle" fill="rgba(255,59,92,0.8)" font-size="9" font-weight="700">过度挤压</text>
+    <defs><marker id="arrowR" viewBox="0 0 6 6" refX="6" refY="3" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#ff2d78"/></marker></defs>
+  </svg>`,
+  breathy: `<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="100" cy="100" rx="60" ry="85" stroke="rgba(0,229,255,0.2)" stroke-width="1.5"/>
+    <!-- Vocal folds - gap -->
+    <path d="M55 92 Q80 95 95 92" stroke="#00e5ff" stroke-width="2.5"/>
+    <path d="M105 92 Q120 95 145 92" stroke="#00e5ff" stroke-width="2.5"/>
+    <path d="M55 108 Q80 105 95 108" stroke="#00e5ff" stroke-width="2.5"/>
+    <path d="M105 108 Q120 105 145 108" stroke="#00e5ff" stroke-width="2.5"/>
+    <!-- Gap indication -->
+    <rect x="96" y="88" width="8" height="24" rx="4" fill="none" stroke="rgba(0,229,255,0.4)" stroke-width="1" stroke-dasharray="2 2"/>
+    <!-- Air escape -->
+    <circle cx="100" cy="75" r="2" fill="rgba(0,229,255,0.4)"><animate attributeName="cy" values="85;45;25" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0.3;0" dur="2s" repeatCount="indefinite"/></circle>
+    <circle cx="96" cy="70" r="1.5" fill="rgba(0,229,255,0.3)"><animate attributeName="cy" values="85;50;30" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.2;0" dur="2.5s" repeatCount="indefinite"/></circle>
+    <circle cx="104" cy="72" r="1.5" fill="rgba(0,229,255,0.3)"><animate attributeName="cy" values="85;48;28" dur="2.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.2;0" dur="2.2s" repeatCount="indefinite"/></circle>
+    <text x="100" y="175" text-anchor="middle" fill="rgba(0,229,255,0.8)" font-size="9" font-weight="700">声门间隙 · 气流泄漏</text>
+  </svg>`,
+  hardattack: `<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="100" cy="100" rx="60" ry="85" stroke="rgba(255,59,92,0.2)" stroke-width="1.5"/>
+    <!-- Folds closed tight -->
+    <line x1="55" y1="100" x2="145" y2="100" stroke="#ff3b5c" stroke-width="4" stroke-linecap="round">
+      <animate attributeName="stroke-width" values="4;6;2;4" dur="0.6s" repeatCount="indefinite"/>
+    </line>
+    <!-- Impact stars -->
+    <path d="M100 100 L105 90 L100 94 L95 85 L100 92 L92 88 L97 95 L88 92 L95 98 L85 100 L95 102 L88 108 L97 105 L92 112 L100 106 L95 115 L100 108 L105 110 L100 100" fill="none" stroke="rgba(255,215,0,0.5)" stroke-width="0.8">
+      <animate attributeName="opacity" values="0;1;0" dur="0.6s" repeatCount="indefinite"/>
+    </path>
+    <!-- Pressure below -->
+    <path d="M80 130 L80 110" stroke="#ff8a3d" stroke-width="1.5" marker-end="url(#arrowO)"/>
+    <path d="M100 135 L100 110" stroke="#ff8a3d" stroke-width="2" marker-end="url(#arrowO)"/>
+    <path d="M120 130 L120 110" stroke="#ff8a3d" stroke-width="1.5" marker-end="url(#arrowO)"/>
+    <text x="100" y="150" text-anchor="middle" fill="rgba(255,138,61,0.6)" font-size="8">声门下压力 ↑↑↑</text>
+    <text x="100" y="175" text-anchor="middle" fill="rgba(255,59,92,0.8)" font-size="9" font-weight="700">猛烈撞击起始</text>
+    <defs><marker id="arrowO" viewBox="0 0 6 6" refX="3" refY="0" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,6 L3,0 L6,6" fill="#ff8a3d"/></marker></defs>
+  </svg>`,
+  nasal: `<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Head profile simplified -->
+    <path d="M60 40 Q60 30 70 25 Q100 10 130 25 Q140 30 140 40 L140 80 Q140 100 130 120 L130 160 Q100 175 70 160 L70 120 Q60 100 60 80 Z" stroke="rgba(180,74,255,0.2)" stroke-width="1.5" fill="none"/>
+    <!-- Nasal cavity -->
+    <path d="M75 35 L75 65 Q100 70 125 65 L125 35" stroke="rgba(180,74,255,0.4)" stroke-width="1.5" fill="rgba(180,74,255,0.03)"/>
+    <!-- Oral cavity -->
+    <path d="M75 80 Q100 85 125 80 L125 110 Q100 115 75 110 Z" stroke="rgba(0,229,255,0.3)" stroke-width="1.5" fill="rgba(0,229,255,0.02)"/>
+    <!-- Velum (soft palate) - DROPPED -->
+    <path d="M100 68 Q110 78 125 72" stroke="#b44aff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <!-- Gap -->
+    <circle cx="100" cy="72" r="6" fill="none" stroke="#b44aff" stroke-width="1" stroke-dasharray="2 2"/>
+    <!-- Air flowing to nose -->
+    <path d="M100 72 L100 50 L95 35" stroke="rgba(180,74,255,0.5)" stroke-width="1.5" stroke-dasharray="3 2">
+      <animate attributeName="stroke-dashoffset" values="10;0" dur="1s" repeatCount="indefinite"/>
+    </path>
+    <path d="M100 72 L105 50 L108 35" stroke="rgba(180,74,255,0.4)" stroke-width="1" stroke-dasharray="3 2">
+      <animate attributeName="stroke-dashoffset" values="10;0" dur="1.2s" repeatCount="indefinite"/>
+    </path>
+    <text x="100" y="45" text-anchor="middle" fill="rgba(180,74,255,0.6)" font-size="7">鼻腔泄漏</text>
+    <text x="100" y="95" text-anchor="middle" fill="rgba(0,229,255,0.5)" font-size="7">口腔</text>
+    <text x="100" y="175" text-anchor="middle" fill="rgba(180,74,255,0.8)" font-size="9" font-weight="700">软腭下垂 · 鼻音外泄</text>
+  </svg>`,
+  highlarynx: `<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="100" cy="80" rx="55" ry="65" stroke="rgba(180,74,255,0.2)" stroke-width="1.5"/>
+    <!-- Normal position (ghost) -->
+    <rect x="70" y="120" width="60" height="30" rx="8" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+    <text x="100" y="140" text-anchor="middle" fill="rgba(255,255,255,0.15)" font-size="7">正常喉位</text>
+    <!-- Raised larynx -->
+    <rect x="72" y="75" width="56" height="28" rx="8" stroke="#b44aff" stroke-width="2" fill="rgba(180,74,255,0.05)">
+      <animate attributeName="y" values="80;73;80" dur="3s" repeatCount="indefinite"/>
+    </rect>
+    <!-- Upward arrows -->
+    <path d="M65 110 L72 85" stroke="#ff8a3d" stroke-width="1.5" stroke-dasharray="3 2"/>
+    <path d="M135 110 L128 85" stroke="#ff8a3d" stroke-width="1.5" stroke-dasharray="3 2"/>
+    <!-- Compressed space -->
+    <path d="M75 40 L75 70" stroke="rgba(255,255,255,0.15)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M125 40 L125 70" stroke="rgba(255,255,255,0.15)" stroke-width="8" stroke-linecap="round"/>
+    <text x="100" y="60" text-anchor="middle" fill="rgba(255,138,61,0.5)" font-size="7">共鸣空间 ↓↓</text>
+    <text x="100" y="175" text-anchor="middle" fill="rgba(180,74,255,0.8)" font-size="9" font-weight="700">喉头上提 · 咽腔缩短</text>
+  </svg>`,
+  breath: `<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Diaphragm -->
+    <path d="M30 110 Q100 130 170 110" stroke="#00ff88" stroke-width="2.5" fill="none">
+      <animate attributeName="d" values="M30 110 Q100 130 170 110;M30 110 Q100 120 170 110;M30 110 Q100 130 170 110" dur="3s" repeatCount="indefinite"/>
+    </path>
+    <!-- Lung outline -->
+    <path d="M50 50 Q50 30 80 25 L100 20 L120 25 Q150 30 150 50 L150 105 Q100 115 50 105 Z" stroke="rgba(0,255,136,0.2)" stroke-width="1.5" fill="rgba(0,255,136,0.02)"/>
+    <!-- Weak air flow -->
+    <circle cx="100" cy="35" r="2" fill="rgba(0,255,136,0.3)"><animate attributeName="cy" values="80;35;10" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0.2;0" dur="4s" repeatCount="indefinite"/></circle>
+    <!-- Small arrows (weak) -->
+    <path d="M90 90 L90 70" stroke="rgba(0,255,136,0.3)" stroke-width="1" marker-end="url(#arrowG)"/>
+    <path d="M110 90 L110 70" stroke="rgba(0,255,136,0.3)" stroke-width="1" marker-end="url(#arrowG)"/>
+    <text x="100" y="100" text-anchor="middle" fill="rgba(0,255,136,0.4)" font-size="7">Ps ↓ 气压不足</text>
+    <!-- Abdominal muscles -->
+    <path d="M60 140 L60 160" stroke="rgba(255,215,0,0.3)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M100" y="140 L100 160" stroke="rgba(255,215,0,0.3)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M140 140 L140 160" stroke="rgba(255,215,0,0.3)" stroke-width="6" stroke-linecap="round"/>
+    <text x="100" y="175" text-anchor="middle" fill="rgba(0,255,136,0.8)" font-size="9" font-weight="700">横膈膜支撑不足</text>
+    <defs><marker id="arrowG" viewBox="0 0 6 6" refX="3" refY="0" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,6 L3,0 L6,6" fill="rgba(0,255,136,0.4)"/></marker></defs>
+  </svg>`,
+  airleak: `<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="100" cy="100" rx="60" ry="85" stroke="rgba(0,255,136,0.15)" stroke-width="1.5"/>
+    <!-- Vocal folds -->
+    <path d="M55 95 Q78 98 92 95" stroke="#00ff88" stroke-width="2"/>
+    <path d="M108 95 Q122 98 145 95" stroke="#00ff88" stroke-width="2"/>
+    <path d="M55 105 Q78 102 92 105" stroke="#00ff88" stroke-width="2"/>
+    <path d="M108 105 Q122 102 145 105" stroke="#00ff88" stroke-width="2"/>
+    <!-- Wide gap -->
+    <rect x="93" y="90" width="14" height="20" rx="7" fill="none" stroke="rgba(255,215,0,0.4)" stroke-width="1" stroke-dasharray="2 2"/>
+    <!-- Lots of air escaping -->
+    <circle cx="97" cy="70" r="2.5" fill="rgba(0,229,255,0.3)"><animate attributeName="cy" values="85;40;15" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.2;0" dur="1.5s" repeatCount="indefinite"/></circle>
+    <circle cx="100" cy="65" r="3" fill="rgba(0,229,255,0.4)"><animate attributeName="cy" values="85;35;10" dur="1.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0.3;0" dur="1.8s" repeatCount="indefinite"/></circle>
+    <circle cx="103" cy="68" r="2" fill="rgba(0,229,255,0.3)"><animate attributeName="cy" values="85;42;18" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.2;0" dur="1.6s" repeatCount="indefinite"/></circle>
+    <circle cx="95" cy="72" r="1.5" fill="rgba(0,229,255,0.2)"><animate attributeName="cy" values="85;45;20" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0.2;0" dur="2s" repeatCount="indefinite"/></circle>
+    <circle cx="105" cy="66" r="2" fill="rgba(0,229,255,0.3)"><animate attributeName="cy" values="85;38;12" dur="1.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.25;0" dur="1.4s" repeatCount="indefinite"/></circle>
+    <text x="100" y="175" text-anchor="middle" fill="rgba(0,255,136,0.8)" font-size="9" font-weight="700">气流大量泄漏</text>
+  </svg>`,
+  break: `<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="100" cy="100" rx="60" ry="85" stroke="rgba(255,138,61,0.2)" stroke-width="1.5"/>
+    <!-- Two modes shown -->
+    <!-- Chest mode (bottom) -->
+    <rect x="65" y="115" width="70" height="15" rx="4" fill="rgba(255,138,61,0.08)" stroke="rgba(255,138,61,0.3)" stroke-width="1"/>
+    <text x="100" y="125" text-anchor="middle" fill="rgba(255,138,61,0.6)" font-size="7">胸声 · TA主导</text>
+    <!-- Head mode (top) -->
+    <rect x="75" y="65" width="50" height="12" rx="4" fill="rgba(180,74,255,0.08)" stroke="rgba(180,74,255,0.3)" stroke-width="1"/>
+    <text x="100" y="74" text-anchor="middle" fill="rgba(180,74,255,0.6)" font-size="7">头声 · CT主导</text>
+    <!-- Break zone -->
+    <rect x="60" y="85" width="80" height="25" rx="6" fill="rgba(255,215,0,0.04)" stroke="rgba(255,215,0,0.3)" stroke-width="1.5" stroke-dasharray="4 3">
+      <animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/>
+    </rect>
+    <!-- Lightning bolt (break) -->
+    <path d="M95 88 L100 95 L96 95 L102 105 L97 105 L105 115 L92 102 L98 102 L93 95 L98 95 Z" fill="rgba(255,215,0,0.5)">
+      <animate attributeName="opacity" values="0.8;0.2;0.8" dur="0.8s" repeatCount="indefinite"/>
+    </path>
+    <text x="100" y="100" text-anchor="middle" fill="rgba(255,215,0,0.7)" font-size="8" font-weight="700">BREAK!</text>
+    <text x="100" y="175" text-anchor="middle" fill="rgba(255,138,61,0.8)" font-size="9" font-weight="700">换声区断裂</text>
+  </svg>`,
+  yelling: `<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="100" cy="100" rx="60" ry="85" stroke="rgba(255,138,61,0.2)" stroke-width="1.5"/>
+    <!-- Thick vocal folds -->
+    <path d="M55 92 Q100 88 145 92" stroke="#ff8a3d" stroke-width="5" stroke-linecap="round">
+      <animate attributeName="stroke-width" values="5;6;5" dur="0.3s" repeatCount="indefinite"/>
+    </path>
+    <path d="M55 108 Q100 112 145 108" stroke="#ff8a3d" stroke-width="5" stroke-linecap="round">
+      <animate attributeName="stroke-width" values="5;6;5" dur="0.3s" repeatCount="indefinite"/>
+    </path>
+    <!-- Impact zone  -->
+    <rect x="70" y="94" width="60" height="12" rx="2" fill="rgba(255,59,92,0.15)">
+      <animate attributeName="opacity" values="0.2;0.4;0.2" dur="0.3s" repeatCount="indefinite"/>
+    </rect>
+    <!-- Extreme pressure -->
+    <path d="M80 140 L80 115" stroke="#ff3b5c" stroke-width="2.5" marker-end="url(#arrowY)"/>
+    <path d="M100 145 L100 115" stroke="#ff3b5c" stroke-width="3" marker-end="url(#arrowY)"/>
+    <path d="M120 140 L120 115" stroke="#ff3b5c" stroke-width="2.5" marker-end="url(#arrowY)"/>
+    <text x="100" y="158" text-anchor="middle" fill="rgba(255,59,92,0.6)" font-size="8">Ps 25-40 cmH₂O !!</text>
+    <!-- Sound waves (loud) -->
+    <path d="M150 80 Q160 70 155 60" stroke="rgba(255,138,61,0.4)" stroke-width="1.5" fill="none"/>
+    <path d="M155 85 Q168 72 162 55" stroke="rgba(255,138,61,0.3)" stroke-width="1.5" fill="none"/>
+    <path d="M160 90 Q176 74 168 50" stroke="rgba(255,138,61,0.2)" stroke-width="1.5" fill="none"/>
+    <text x="100" y="175" text-anchor="middle" fill="rgba(255,138,61,0.8)" font-size="9" font-weight="700">纯胸声硬推 · 大白嗓</text>
+    <defs><marker id="arrowY" viewBox="0 0 6 6" refX="3" refY="0" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,6 L3,0 L6,6" fill="#ff3b5c"/></marker></defs>
+  </svg>`,
+  falsetto: `<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="100" cy="100" rx="60" ry="85" stroke="rgba(180,74,255,0.15)" stroke-width="1.5"/>
+    <!-- Thin stretched folds -->
+    <path d="M50 97 Q100 95 150 97" stroke="#b44aff" stroke-width="1.5" stroke-dasharray="6 3"/>
+    <path d="M50 103 Q100 105 150 103" stroke="#b44aff" stroke-width="1.5" stroke-dasharray="6 3"/>
+    <!-- Edge vibration only -->
+    <path d="M85 97 Q100 99 115 97" stroke="#b44aff" stroke-width="3" stroke-linecap="round">
+      <animate attributeName="d" values="M85 97 Q100 99 115 97;M85 98 Q100 96 115 98;M85 97 Q100 99 115 97" dur="0.5s" repeatCount="indefinite"/>
+    </path>
+    <path d="M85 103 Q100 101 115 103" stroke="#b44aff" stroke-width="3" stroke-linecap="round">
+      <animate attributeName="d" values="M85 103 Q100 101 115 103;M85 102 Q100 104 115 102;M85 103 Q100 101 115 103" dur="0.5s" repeatCount="indefinite"/>
+    </path>
+    <!-- CT muscle stretch indicator -->
+    <path d="M45 100 L55 100" stroke="rgba(180,74,255,0.4)" stroke-width="1"/>
+    <path d="M145 100 L155 100" stroke="rgba(180,74,255,0.4)" stroke-width="1"/>
+    <text x="35" y="93" fill="rgba(180,74,255,0.4)" font-size="6">CT →</text>
+    <text x="150" y="93" fill="rgba(180,74,255,0.4)" font-size="6">← CT</text>
+    <text x="100" y="130" text-anchor="middle" fill="rgba(180,74,255,0.4)" font-size="7">仅边缘振动</text>
+    <text x="100" y="175" text-anchor="middle" fill="rgba(180,74,255,0.8)" font-size="9" font-weight="700">声带过薄 · 假声主导</text>
+  </svg>`,
+  mixbalance: `<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="100" cy="100" rx="60" ry="85" stroke="rgba(180,74,255,0.15)" stroke-width="1.5"/>
+    <!-- Balance scale -->
+    <line x1="100" y1="60" x2="100" y2="100" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+    <circle cx="100" cy="58" r="3" fill="rgba(255,255,255,0.15)"/>
+    <!-- Beam - tilting -->
+    <line x1="60" y1="75" x2="140" y2="65" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round">
+      <animate attributeName="y1" values="75;65;75" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="y2" values="65;75;65" dur="3s" repeatCount="indefinite"/>
+    </line>
+    <!-- TA weight -->
+    <rect x="50" y="78" width="30" height="18" rx="4" fill="rgba(255,138,61,0.1)" stroke="rgba(255,138,61,0.3)" stroke-width="1">
+      <animate attributeName="y" values="78;68;78" dur="3s" repeatCount="indefinite"/>
+    </rect>
+    <text x="65" y="90" text-anchor="middle" fill="rgba(255,138,61,0.6)" font-size="7">TA</text>
+    <!-- CT weight -->
+    <rect x="120" y="68" width="30" height="18" rx="4" fill="rgba(180,74,255,0.1)" stroke="rgba(180,74,255,0.3)" stroke-width="1">
+      <animate attributeName="y" values="68;78;68" dur="3s" repeatCount="indefinite"/>
+    </rect>
+    <text x="135" y="80" text-anchor="middle" fill="rgba(180,74,255,0.6)" font-size="7">CT</text>
+    <!-- Unstable waveform -->
+    <path d="M50 140 Q60 130 70 140 Q80 150 90 135 Q95 145 100 130 Q110 150 120 140 Q130 125 140 140 Q145 150 150 140" stroke="rgba(255,215,0,0.4)" stroke-width="1.5" fill="none">
+      <animate attributeName="d" values="M50 140 Q60 130 70 140 Q80 150 90 135 Q95 145 100 130 Q110 150 120 140 Q130 125 140 140 Q145 150 150 140;M50 140 Q60 150 70 135 Q80 130 90 145 Q95 135 100 150 Q110 130 120 140 Q130 148 140 135 Q145 130 150 140;M50 140 Q60 130 70 140 Q80 150 90 135 Q95 145 100 130 Q110 150 120 140 Q130 125 140 140 Q145 150 150 140" dur="2s" repeatCount="indefinite"/>
+    </path>
+    <text x="100" y="175" text-anchor="middle" fill="rgba(180,74,255,0.8)" font-size="9" font-weight="700">TA/CT 失衡 · 混声不稳</text>
+  </svg>`,
+};
+
+// ===== RENDER CARDS =====
+function renderCards(filter = 'all') {
+  const grid = document.getElementById('problemsGrid');
+  grid.innerHTML = '';
+  
+  const filtered = filter === 'all' ? PROBLEMS : PROBLEMS.filter(p => p.cat === filter);
+  
+  filtered.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'problem-card';
+    card.dataset.cat = p.cat;
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    
+    card.innerHTML = `
+      <div class="card-anatomy">
+        <div class="anatomy-visual">${ANATOMY_SVGS[p.anatomy] || ''}</div>
+        <div class="anatomy-label">${p.name.split('·')[0].trim()}</div>
+        <div class="anatomy-sub">${p.en.split('/')[0].trim()}</div>
+      </div>
+      <div class="card-content">
+        <div class="card-head">
+          <div class="card-icon">${p.icon}</div>
+          <div class="card-titlebox">
+            <h3>${p.name}</h3>
+            <div class="en">${p.en}</div>
+          </div>
+        </div>
+        <div class="severity">
+          <span class="sev-label">严重度</span>
+          <div class="sev-track"><div class="sev-fill" data-width="${p.severity}" style="width:0%"></div></div>
+          <span class="sev-text">${p.sevLabel}</span>
+        </div>
+        <div class="card-desc">${p.desc}</div>
+        <div class="physio-blocks">
+          ${p.physio.map(b => `
+            <div class="physio-block">
+              <div class="pb-icon">${b.icon}</div>
+              <div class="pb-text">${b.text}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="acoustic">
+          <div class="acoustic-title">🎛️ Acoustic Signature</div>
+          <div class="acoustic-features">
+            ${p.acoustic.map(a => `<span class="af-tag">${a}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    grid.appendChild(card);
+    
+    // Animate in
+    setTimeout(() => {
+      card.style.transition = 'all 0.6s cubic-bezier(0.16,1,0.3,1)';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, i * 120);
+    
+    // Animate severity bar on scroll
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if(e.isIntersecting) {
+          const fill = e.target.querySelector('.sev-fill');
+          if(fill) {
+            fill.style.transition = 'width 1.2s cubic-bezier(0.16,1,0.3,1)';
+            fill.style.width = fill.dataset.width + '%';
+          }
+          observer.unobserve(e.target);
+        }
+      });
+    }, {threshold: 0.2});
+    observer.observe(card);
+  });
+}
+
+// ===== CATEGORY FILTER =====
+document.querySelectorAll('.cat-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCards(btn.dataset.filter);
+  });
+});
+
+// ===== INIT =====
+renderCards();
+</script>
+
+</body>
+</html>
