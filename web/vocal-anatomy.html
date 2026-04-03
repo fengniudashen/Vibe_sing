@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>发声生理学 · 交互解剖图 — Vibesing</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#040408;--card:rgba(255,255,255,0.02);
+  --glass:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.05);
+  --cyan:#00e5ff;--pink:#ff2d78;--purple:#b44aff;
+  --green:#00ff88;--yellow:#ffd700;--orange:#ff8a3d;--red:#ff3b5c;
+  --text:#e4e4f0;--dim:#5a5a70;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 30% 20%,rgba(180,74,255,0.06),transparent),radial-gradient(ellipse 60% 60% at 70% 80%,rgba(0,229,255,0.05),transparent);animation:hue 20s ease-in-out infinite alternate}
+@keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(15deg)}}
+.container{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 20px}
+
+/* HERO */
+.hero{padding:80px 0 30px;text-align:center}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;padding:6px 18px;border-radius:50px;font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(180,74,255,0.25);color:var(--purple);background:rgba(180,74,255,0.06);margin-bottom:20px}
+.hero h1{font-size:clamp(2rem,5vw,3.6rem);font-weight:800;line-height:1.15;margin-bottom:12px;background:linear-gradient(135deg,#fff 10%,var(--purple) 55%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{max-width:620px;margin:0 auto;color:var(--dim);font-size:0.95rem;line-height:1.7}
+
+/* NAV */
+.nav-tabs{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;padding:20px 0 40px;position:sticky;top:0;z-index:50;background:linear-gradient(180deg,var(--bg) 65%,transparent)}
+.nav-tab{padding:8px 16px;border:1px solid var(--border);border-radius:50px;background:var(--glass);color:var(--dim);font-size:0.76rem;font-weight:600;cursor:pointer;transition:all 0.3s}
+.nav-tab:hover,.nav-tab.active{border-color:var(--purple);color:var(--purple);background:rgba(180,74,255,0.08)}
+
+/* SECTION */
+.section{padding:20px 0 60px;display:none}
+.section.active{display:block;animation:fadeIn 0.5s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.section-title{font-size:1.8rem;font-weight:800;margin-bottom:8px;text-align:center}
+.section-sub{font-size:0.85rem;color:var(--dim);text-align:center;margin-bottom:40px}
+
+/* INTERACTIVE LARYNX */
+.larynx-scene{display:flex;gap:40px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+.larynx-canvas{width:400px;height:500px;position:relative;flex-shrink:0}
+.larynx-svg{width:100%;height:100%}
+
+/* Hotspots */
+.hotspot{
+  position:absolute;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.3s;
+}
+.hs-dot{
+  width:16px;height:16px;border-radius:50%;
+  background:var(--cyan);opacity:0.7;position:relative;
+  box-shadow:0 0 10px rgba(0,229,255,0.4);
+}
+.hs-dot::before{
+  content:'';position:absolute;inset:-4px;border-radius:50%;
+  border:2px solid var(--cyan);opacity:0.3;
+  animation:hsRipple 2s ease-out infinite;
+}
+@keyframes hsRipple{0%{transform:scale(1);opacity:0.3}100%{transform:scale(2);opacity:0}}
+.hotspot:hover .hs-dot{transform:scale(1.3);opacity:1}
+.hotspot.active .hs-dot{background:var(--pink);box-shadow:0 0 15px rgba(255,45,120,0.5)}
+.hotspot.active .hs-dot::before{border-color:var(--pink)}
+
+.hs-label{
+  position:absolute;left:22px;top:50%;transform:translateY(-50%);
+  white-space:nowrap;font-size:0.7rem;font-weight:600;
+  color:var(--cyan);opacity:0;transition:opacity 0.3s;
+  pointer-events:none;
+}
+.hotspot:hover .hs-label,.hotspot.active .hs-label{opacity:1}
+.hotspot.active .hs-label{color:var(--pink)}
+
+/* Info panel */
+.info-panel{
+  width:380px;background:var(--card);border:1px solid var(--border);
+  border-radius:24px;padding:28px;flex-shrink:0;
+  transition:all 0.3s;min-height:300px;
+}
+.info-panel.highlight{border-color:rgba(180,74,255,0.2);box-shadow:0 0 30px rgba(180,74,255,0.05)}
+.ip-header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.ip-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:rgba(180,74,255,0.08);flex-shrink:0}
+.ip-name{font-size:1.2rem;font-weight:800}
+.ip-latin{font-size:0.72rem;color:var(--dim);font-style:italic;margin-top:2px}
+.ip-desc{font-size:0.82rem;color:var(--dim);line-height:1.7;margin-bottom:18px}
+.ip-facts{display:flex;flex-direction:column;gap:8px}
+.ip-fact{display:flex;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.015);font-size:0.78rem}
+.ip-fact-icon{flex-shrink:0;font-size:1rem;margin-top:1px}
+.ip-fact-text{color:var(--dim);line-height:1.5}
+.ip-fact-text strong{color:var(--text)}
+.ip-singing{margin-top:16px;padding:14px;border-radius:12px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08)}
+.ip-singing-title{font-size:0.68rem;color:var(--cyan);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.ip-singing-text{font-size:0.76rem;color:var(--dim);line-height:1.6}
+
+/* MUSCLE DATABASE */
+.muscle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.m-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;transition:all 0.3s;cursor:default}
+.m-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,0.1);box-shadow:0 12px 40px rgba(0,0,0,0.3)}
+.m-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.m-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.m-name{font-size:0.95rem;font-weight:700}
+.m-latin{font-size:0.68rem;color:var(--dim);font-style:italic}
+.m-role{font-size:0.78rem;color:var(--dim);line-height:1.6;margin-bottom:12px}
+.m-details{display:flex;flex-wrap:wrap;gap:6px}
+.m-tag{font-size:0.65rem;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,0.03);color:var(--dim);border:1px solid var(--border)}
+.m-tag.action{background:rgba(0,229,255,0.05);color:rgba(0,229,255,0.7);border-color:rgba(0,229,255,0.1)}
+.m-tag.nerve{background:rgba(180,74,255,0.05);color:rgba(180,74,255,0.7);border-color:rgba(180,74,255,0.1)}
+
+/* BREATHING SYSTEM */
+.breath-scene{display:flex;gap:40px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+.breath-visual{width:400px;height:450px;position:relative;flex-shrink:0}
+.breath-svg{width:100%;height:100%}
+
+/* Phase controls */
+.phase-controls{display:flex;justify-content:center;gap:12px;margin-bottom:30px}
+.phase-btn{padding:10px 24px;border:2px solid var(--border);border-radius:50px;background:none;color:var(--dim);font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.3s}
+.phase-btn:hover{border-color:var(--text);color:var(--text)}
+.phase-btn.active{border-color:var(--green);color:var(--green);background:rgba(0,255,136,0.06)}
+
+.breath-info{width:400px}
+
+/* VOCAL PROCESS */
+.process-timeline{
+  display:flex;flex-direction:column;gap:0;
+  max-width:800px;margin:0 auto;position:relative;
+}
+.process-timeline::before{
+  content:'';position:absolute;left:28px;top:20px;bottom:20px;
+  width:2px;background:linear-gradient(var(--purple),var(--cyan),var(--green));
+}
+.pt-step{display:flex;gap:20px;padding:20px 0;position:relative}
+.pt-num{
+  width:56px;height:56px;border-radius:16px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+  background:var(--card);border:2px solid var(--border);z-index:1;
+  transition:all 0.5s;
+}
+.pt-step:hover .pt-num{border-color:var(--cyan);box-shadow:0 0 20px rgba(0,229,255,0.1)}
+.pt-content{flex:1;padding-top:4px}
+.pt-title{font-size:1.05rem;font-weight:700;margin-bottom:4px}
+.pt-desc{font-size:0.8rem;color:var(--dim);line-height:1.6;margin-bottom:8px}
+.pt-tags{display:flex;flex-wrap:wrap;gap:4px}
+.pt-tag{font-size:0.65rem;padding:3px 8px;border-radius:6px;background:rgba(0,229,255,0.05);color:rgba(0,229,255,0.7);border:1px solid rgba(0,229,255,0.1)}
+
+@media(max-width:860px){.larynx-scene,.breath-scene{flex-direction:column;align-items:center}.info-panel,.breath-info{width:100%;max-width:500px}.larynx-canvas,.breath-visual{width:100%;max-width:400px}}
+</style>
+</head>
+<body>
+<div class="aurora"></div>
+<div class="container">
+
+<section class="hero">
+  <div class="hero-tag">🔬 Interactive Anatomy</div>
+  <h1>发声生理学<br>交互解剖图</h1>
+  <p>点击、探索、理解。从声带到横膈膜，从肌肉到神经，完整的人体发声系统交互式解剖。</p>
+</section>
+
+<nav class="nav-tabs">
+  <button class="nav-tab active" data-sec="larynx">🫁 喉部结构</button>
+  <button class="nav-tab" data-sec="muscles">💪 发声肌群</button>
+  <button class="nav-tab" data-sec="breathing">🌬️ 呼吸系统</button>
+  <button class="nav-tab" data-sec="process">🔊 发声过程</button>
+  <button class="nav-tab" data-sec="resonance">🏛️ 共鸣系统</button>
+</nav>
+
+<!-- ===== LARYNX ===== -->
+<section class="section active" id="sec-larynx">
+  <div class="section-title">喉部交互解剖</div>
+  <div class="section-sub">点击标记点探索每个结构的功能和歌唱意义</div>
+  <div class="larynx-scene">
+    <div class="larynx-canvas">
+      <svg class="larynx-svg" viewBox="0 0 400 500" fill="none">
+        <!-- Throat outline -->
+        <path d="M120 40 Q100 60 90 120 Q80 200 85 280 Q90 360 110 420 Q130 460 200 470 Q270 460 290 420 Q310 360 315 280 Q320 200 310 120 Q300 60 280 40 Q240 20 200 20 Q160 20 120 40Z" stroke="rgba(180,74,255,0.15)" stroke-width="1.5" fill="rgba(180,74,255,0.01)"/>
+        <!-- Hyoid bone -->
+        <path d="M130 110 Q160 100 200 98 Q240 100 270 110" stroke="rgba(255,215,0,0.5)" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <!-- Thyroid cartilage (Adam's apple) -->
+        <path d="M125 145 L200 130 L275 145 L270 220 Q240 235 200 238 Q160 235 130 220 Z" stroke="rgba(0,229,255,0.3)" stroke-width="2" fill="rgba(0,229,255,0.02)"/>
+        <path d="M200 130 L200 155" stroke="rgba(0,229,255,0.4)" stroke-width="1.5"/>
+        <!-- Cricoid cartilage -->
+        <path d="M140 240 Q170 230 200 228 Q230 230 260 240 L265 270 Q240 280 200 282 Q160 280 135 270 Z" stroke="rgba(0,255,136,0.3)" stroke-width="2" fill="rgba(0,255,136,0.02)"/>
+        <!-- Trachea -->
+        <path d="M165 285 Q200 290 235 285 L238 380 Q200 388 162 380 Z" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" fill="rgba(255,255,255,0.01)"/>
+        <line x1="165" y1="310" x2="235" y2="310" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="164" y1="335" x2="236" y2="335" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="163" y1="360" x2="237" y2="360" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <!-- Epiglottis -->
+        <path d="M185 95 Q200 75 215 95 Q210 120 200 130 Q190 120 185 95Z" stroke="rgba(255,138,61,0.4)" stroke-width="1.5" fill="rgba(255,138,61,0.04)"/>
+        <!-- Vocal folds -->
+        <path d="M148 188 Q175 192 195 186" stroke="var(--pink)" stroke-width="3" stroke-linecap="round">
+          <animate attributeName="d" values="M148 188 Q175 192 195 186;M150 188 Q175 190 195 185;M148 188 Q175 192 195 186" dur="1.2s" repeatCount="indefinite"/>
+        </path>
+        <path d="M205 186 Q225 192 252 188" stroke="var(--pink)" stroke-width="3" stroke-linecap="round">
+          <animate attributeName="d" values="M205 186 Q225 192 252 188;M205 185 Q225 190 250 188;M205 186 Q225 192 252 188" dur="1.2s" repeatCount="indefinite"/>
+        </path>
+        <!-- False folds -->
+        <path d="M145 170 Q175 175 195 170" stroke="rgba(255,45,120,0.2)" stroke-width="2" stroke-dasharray="4 3"/>
+        <path d="M205 170 Q225 175 255 170" stroke="rgba(255,45,120,0.2)" stroke-width="2" stroke-dasharray="4 3"/>
+        <!-- Arytenoid cartilages -->
+        <ellipse cx="150" cy="200" rx="10" ry="12" stroke="rgba(255,215,0,0.3)" stroke-width="1.5" fill="rgba(255,215,0,0.03)"/>
+        <ellipse cx="250" cy="200" rx="10" ry="12" stroke="rgba(255,215,0,0.3)" stroke-width="1.5" fill="rgba(255,215,0,0.03)"/>
+        <!-- CT muscle hint -->
+        <path d="M132 225 Q140 200 150 190" stroke="rgba(0,255,136,0.2)" stroke-width="1" stroke-dasharray="3 2"/>
+        <path d="M268 225 Q260 200 250 190" stroke="rgba(0,255,136,0.2)" stroke-width="1" stroke-dasharray="3 2"/>
+      </svg>
+
+      <!-- Hotspots -->
+      <div class="hotspot" style="top:96px;left:185px" data-id="epiglottis" onclick="showInfo(this)">
+        <div class="hs-dot"></div><div class="hs-label">会厌 Epiglottis</div>
+      </div>
+      <div class="hotspot" style="top:103px;left:190px" data-id="hyoid" onclick="showInfo(this)">
+        <div class="hs-dot" style="left:-60px"></div><div class="hs-label" style="left:-140px">舌骨 Hyoid</div>
+      </div>
+      <div class="hotspot" style="top:148px;left:192px" data-id="thyroid" onclick="showInfo(this)">
+        <div class="hs-dot" style="left:90px"></div><div class="hs-label" style="left:110px">甲状软骨 Thyroid</div>
+      </div>
+      <div class="hotspot active" style="top:183px;left:192px" data-id="vocalfolds" onclick="showInfo(this)">
+        <div class="hs-dot"></div><div class="hs-label">声带 Vocal Folds</div>
+      </div>
+      <div class="hotspot" style="top:167px;left:192px" data-id="falsefolds" onclick="showInfo(this)">
+        <div class="hs-dot" style="left:85px"></div><div class="hs-label" style="left:105px">假声带 False Folds</div>
+      </div>
+      <div class="hotspot" style="top:197px;left:142px" data-id="arytenoid" onclick="showInfo(this)">
+        <div class="hs-dot"></div><div class="hs-label" style="left:-100px;right:auto">杓状软骨 Arytenoid</div>
+      </div>
+      <div class="hotspot" style="top:250px;left:192px" data-id="cricoid" onclick="showInfo(this)">
+        <div class="hs-dot" style="left:-65px"></div><div class="hs-label" style="left:-130px">环状软骨 Cricoid</div>
+      </div>
+      <div class="hotspot" style="top:340px;left:192px" data-id="trachea" onclick="showInfo(this)">
+        <div class="hs-dot"></div><div class="hs-label">气管 Trachea</div>
+      </div>
+    </div>
+
+    <div class="info-panel" id="infoPanel">
+      <!-- Default: vocal folds -->
+      <div class="ip-header">
+        <div class="ip-icon">🎤</div>
+        <div><div class="ip-name" id="ipName">声带</div><div class="ip-latin" id="ipLatin">Vocal Folds / Vocal Cords</div></div>
+      </div>
+      <div class="ip-desc" id="ipDesc">声带是一对白色的V形薄膜状组织，附着在甲状软骨前联合和杓状软骨声带突之间。成人声带长约1.5-2cm（男）/ 1-1.5cm（女），是人体发声的核心振动源。</div>
+      <div class="ip-facts" id="ipFacts">
+        <div class="ip-fact"><div class="ip-fact-icon">📏</div><div class="ip-fact-text"><strong>长度</strong>：男性约17-21mm，女性约11-15mm。声带越长越厚，基频越低</div></div>
+        <div class="ip-fact"><div class="ip-fact-icon">🔬</div><div class="ip-fact-text"><strong>5层结构</strong>：上皮层 → 浅层固有膜（Reinke空间）→ 中层 → 深层 → 声带肌。Reinke空间的振动性决定音质</div></div>
+        <div class="ip-fact"><div class="ip-fact-icon">⚡</div><div class="ip-fact-text"><strong>振动频率</strong>：说话时约100-300Hz，唱歌时最高可达1500Hz以上（花腔女高音），每秒碰撞数百次</div></div>
+      </div>
+      <div class="ip-singing" id="ipSinging">
+        <div class="ip-singing-title">🎵 歌唱意义</div>
+        <div class="ip-singing-text" id="ipSingingText">声带是发声的"音源"。声带的长度、厚度、张力、闭合程度共同决定了音高、音量和音质。挤卡=过度闭合，漏气=闭合不足，混声=部分接触振动。Vibesing检测的HNR本质上就是在评估声带振动的规律性。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MUSCLES ===== -->
+<section class="section" id="sec-muscles">
+  <div class="section-title">发声肌群百科</div>
+  <div class="section-sub">从声带到横膈膜，控制你声音的每一块肌肉</div>
+  <div class="muscle-grid" id="muscleGrid"></div>
+</section>
+
+<!-- ===== BREATHING ===== -->
+<section class="section" id="sec-breathing">
+  <div class="section-title">呼吸系统</div>
+  <div class="section-sub">歌唱的动力来源 — 从肺到声门的气流控制</div>
+  <div class="phase-controls">
+    <button class="phase-btn active" data-phase="inhale" onclick="setPhase('inhale',this)">🫁 吸气</button>
+    <button class="phase-btn" data-phase="exhale" onclick="setPhase('exhale',this)">💨 呼气</button>
+    <button class="phase-btn" data-phase="appoggio" onclick="setPhase('appoggio',this)">⚖️ Appoggio</button>
+  </div>
+  <div class="breath-scene">
+    <div class="breath-visual">
+      <svg class="breath-svg" viewBox="0 0 400 450" fill="none" id="breathSvg">
+        <!-- Ribcage -->
+        <path d="M100 80 Q80 120 75 180 Q80 240 100 280" stroke="rgba(255,255,255,0.1)" stroke-width="2" fill="none"/>
+        <path d="M300 80 Q320 120 325 180 Q320 240 300 280" stroke="rgba(255,255,255,0.1)" stroke-width="2" fill="none"/>
+        <!-- Ribs -->
+        <path d="M100 100 Q200 90 300 100" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" fill="none"/>
+        <path d="M90 130 Q200 118 310 130" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" fill="none"/>
+        <path d="M82 160 Q200 146 318 160" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" fill="none"/>
+        <path d="M78 190 Q200 174 322 190" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" fill="none"/>
+        <path d="M80 220 Q200 202 320 220" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" fill="none"/>
+        <path d="M85 250 Q200 234 315 250" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" fill="none"/>
+        <!-- Lungs -->
+        <path id="lungL" d="M110 90 Q90 180 100 260 Q140 270 170 260 L175 100 Q150 85 110 90Z" stroke="rgba(0,229,255,0.2)" stroke-width="1.5" fill="rgba(0,229,255,0.03)"/>
+        <path id="lungR" d="M290 90 Q310 180 300 260 Q260 270 230 260 L225 100 Q250 85 290 90Z" stroke="rgba(0,229,255,0.2)" stroke-width="1.5" fill="rgba(0,229,255,0.03)"/>
+        <!-- Trachea + Bronchi -->
+        <line x1="200" y1="60" x2="200" y2="100" stroke="rgba(255,255,255,0.1)" stroke-width="3"/>
+        <path d="M200 100 Q180 110 170 120" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+        <path d="M200 100 Q220 110 230 120" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+        <!-- Diaphragm -->
+        <path id="diaphragm" d="M70 280 Q140 310 200 315 Q260 310 330 280" stroke="var(--green)" stroke-width="3" fill="none" stroke-linecap="round">
+          <animate id="diaAnim" attributeName="d" values="M70 280 Q140 310 200 315 Q260 310 330 280;M70 280 Q140 340 200 350 Q260 340 330 280;M70 280 Q140 310 200 315 Q260 310 330 280" dur="4s" repeatCount="indefinite"/>
+        </path>
+        <!-- Abdominal muscles -->
+        <rect x="120" y="320" width="160" height="80" rx="20" stroke="rgba(255,138,61,0.2)" stroke-width="1.5" fill="rgba(255,138,61,0.02)" id="abdominals"/>
+        <text x="200" y="365" text-anchor="middle" fill="rgba(255,138,61,0.4)" font-size="11" font-weight="600">腹肌群</text>
+        <!-- Arrows -->
+        <g id="arrowsInhale">
+          <path d="M200 290 L200 320" stroke="var(--green)" stroke-width="2" marker-end="url(#arrD)"><animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite"/></path>
+          <path d="M150 200 L140 200" stroke="rgba(0,229,255,0.4)" stroke-width="1.5" marker-end="url(#arrL)"><animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite"/></path>
+          <path d="M250 200 L260 200" stroke="rgba(0,229,255,0.4)" stroke-width="1.5" marker-end="url(#arrR)"><animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite"/></path>
+        </g>
+        <g id="arrowsExhale" style="display:none">
+          <path d="M200 320 L200 290" stroke="var(--orange)" stroke-width="2" marker-end="url(#arrU)"><animate attributeName="opacity" values="0;1;0" dur="3s" repeatCount="indefinite"/></path>
+          <path d="M200 85 L200 65" stroke="rgba(0,229,255,0.5)" stroke-width="2" marker-end="url(#arrU)"><animate attributeName="opacity" values="0;1;0" dur="3s" repeatCount="indefinite"/></path>
+        </g>
+        <!-- Labels -->
+        <text x="145" y="180" fill="rgba(0,229,255,0.4)" font-size="10">左肺</text>
+        <text x="240" y="180" fill="rgba(0,229,255,0.4)" font-size="10">右肺</text>
+        <text x="200" y="55" text-anchor="middle" fill="rgba(255,255,255,0.2)" font-size="9">气管→喉</text>
+        <defs>
+          <marker id="arrD" viewBox="0 0 6 6" refX="3" refY="6" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L3,6 L6,0" fill="var(--green)"/></marker>
+          <marker id="arrU" viewBox="0 0 6 6" refX="3" refY="0" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,6 L3,0 L6,6" fill="var(--orange)"/></marker>
+          <marker id="arrL" viewBox="0 0 6 6" refX="0" refY="3" markerWidth="6" markerHeight="6" orient="auto"><path d="M6,0 L0,3 L6,6" fill="rgba(0,229,255,0.4)"/></marker>
+          <marker id="arrR" viewBox="0 0 6 6" refX="6" refY="3" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L6,3 L0,6" fill="rgba(0,229,255,0.4)"/></marker>
+        </defs>
+      </svg>
+    </div>
+    <div class="breath-info info-panel" id="breathPanel">
+      <div class="ip-header"><div class="ip-icon">🫁</div><div><div class="ip-name">吸气阶段</div><div class="ip-latin">Inspiration Phase</div></div></div>
+      <div class="ip-desc" id="breathDesc">横膈膜收缩下降 7-10cm（训练良好的歌手），胸腔容积增大，肺内压降低至大气压以下，空气被动流入。肋间外肌辅助升高肋骨，进一步扩大胸腔。</div>
+      <div class="ip-facts" id="breathFacts">
+        <div class="ip-fact"><div class="ip-fact-icon">📐</div><div class="ip-fact-text"><strong>横膈膜下降</strong>：日常呼吸1-2cm，深呼吸3-5cm，歌手训练后可达7-10cm</div></div>
+        <div class="ip-fact"><div class="ip-fact-icon">🫁</div><div class="ip-fact-text"><strong>肺活量</strong>：成人约3-5L，歌手通常利用60-70%（不应吸满，过满导致僵硬）</div></div>
+        <div class="ip-fact"><div class="ip-fact-icon">⏱️</div><div class="ip-fact-text"><strong>歌唱吸气</strong>：应在0.5秒内完成（不是慢慢吸！），然后稳定地呼出</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROCESS ===== -->
+<section class="section" id="sec-process">
+  <div class="section-title">发声全过程</div>
+  <div class="section-sub">从一口气到一个音符，7个环节的精密协作</div>
+  <div class="process-timeline" id="processTimeline"></div>
+</section>
+
+<!-- ===== RESONANCE ===== -->
+<section class="section" id="sec-resonance">
+  <div class="section-title">共鸣系统</div>
+  <div class="section-sub">3个共鸣腔如何塑造你独特的音色</div>
+  <div class="muscle-grid" id="resonanceGrid"></div>
+</section>
+
+</div>
+
+<script>
+// ===== LARYNX INFO DATABASE =====
+const LARYNX_DATA={
+  epiglottis:{name:'会厌',latin:'Epiglottis',icon:'🛡️',
+    desc:'勺形弹性软骨，位于舌根后方。吞咽时向后翻盖住喉口，防止食物进入气道。发声时会厌是打开的，不直接参与振动，但其角度影响喉腔入口形状。',
+    facts:[
+      {icon:'📐',text:'<strong>形状</strong>：叶片状弹性软骨，长约3-4cm，连接在甲状软骨内面'},
+      {icon:'🔄',text:'<strong>双重功能</strong>：吞咽时保护气道；歌唱时EWL（会厌-声门宽度比）影响高泛音能量'},
+      {icon:'🎵',text:'<strong>歌唱关系</strong>：会厌管（Epiglottic Funnel）缩窄时，2.5-3.5kHz区域增强 → Singer\'s Formant'},
+    ],
+    singing:'会厌管的收窄是产生"歌者共振峰"（2.5-3.5kHz）的关键机制。当喉头适度降低时，会厌自然后倾，形成理想的窄管状，这就是Bel Canto追求的"喉咙打开"感觉。Vibesing检测Spectral Centroid来评估此共鸣通道。'
+  },
+  hyoid:{name:'舌骨',latin:'Os Hyoideum / Hyoid Bone',icon:'🦴',
+    desc:'人体唯一不与其他骨骼直接相连的骨骼！悬浮在颈部肌肉中间，像秋千一样被多组肌肉牵拉。是喉部的"悬挂支架"，喉的所有运动都通过舌骨实现。',
+    facts:[
+      {icon:'🦴',text:'<strong>U形结构</strong>：位于下巴和喉结之间，C3颈椎水平。体部+大角+小角'},
+      {icon:'↕️',text:'<strong>8组肌肉连接</strong>：上方4组（舌骨上肌群）拉高喉位；下方4组（舌骨下肌群）稳定/降低喉位'},
+      {icon:'⚖️',text:'<strong>平衡很重要</strong>：上下肌群张力平衡决定喉位高低，歌唱时喉位应保持低位稳定'},
+    ],
+    singing:'舌骨是"喉位高低"的核心。挤卡时舌骨上肌群过度收缩，将舌骨和喉头一起上拉。打哈欠时舌骨下肌群主导，喉头自然下降。Vibesing检测到F1异常升高时，很可能是舌骨被拉高、咽腔缩短的信号。'
+  },
+  thyroid:{name:'甲状软骨',latin:'Cartilago Thyroidea',icon:'🔷',
+    desc:'喉部最大的软骨，形如盾牌（希腊语θυρεός=盾）。两片四边形软骨板在前方以90°(男)/120°(女)角度融合，男性前突部分就是"喉结"（Adam\'s Apple）。',
+    facts:[
+      {icon:'📏',text:'<strong>尺寸</strong>：高约2-3cm。男性前角约90°（喉结明显），女性前角约120°（喉结不显著）'},
+      {icon:'🔗',text:'<strong>关键连接</strong>：声带前端固定在甲状软骨内面前联合处。环甲肌连接甲状软骨下缘和环状软骨'},
+      {icon:'🎵',text:'<strong>音高调控者</strong>：环甲肌收缩时甲状软骨前倾 → 拉长声带 → 音高升高。这是头声的主要机制'},
+    ],
+    singing:'甲状软骨是声带的"前锚点"。环甲肌（CT）收缩使甲状软骨向前下方倾斜，拉长声带，音调升高——这就是头声/环甲机能。声带科学中的CT/TA平衡，本质上就是甲状软骨前倾（CT）vs声带肌内收缩（TA）的拔河。'
+  },
+  vocalfolds:{name:'声带',latin:'Vocal Folds / Plica Vocalis',icon:'🎤',
+    desc:'一对白色V形薄膜组织，附着在甲状软骨前联合和杓状软骨声带突之间。由5层精密结构组成，是人体发声的核心振动源。',
+    facts:[
+      {icon:'📏',text:'<strong>长度</strong>：男性17-21mm，女性11-15mm。声带长=音低，这就是为什么男声比女声低约一个八度'},
+      {icon:'🔬',text:'<strong>5层结构</strong>：上皮层→浅固有膜（Reinke空间）→中层→深层→声带肌。Reinke空间的波动性决定音质'},
+      {icon:'⚡',text:'<strong>振动频率</strong>：A4=440Hz，即声带每秒碰撞440次。高音C6=1047Hz。花腔女高音的声带像蜂鸟翅膀一样快速振动'},
+    ],
+    singing:'声带是声音的"音源发生器"。HNR测量声带振动的规律性（振动规律=清晰谐波=高HNR）。挤卡本质是声带过度闭合+假声带被挤入，导致振动不规则、HNR下降。Vibesing的核心任务就是守护你的声带健康。'
+  },
+  falsefolds:{name:'假声带（室褶）',latin:'Ventricular Folds / False Vocal Folds',icon:'🔇',
+    desc:'位于真声带正上方的一对厚褶，正常发声时不应参与振动。含有大量黏液腺，主要功能是润滑和保护真声带。',
+    facts:[
+      {icon:'🛡️',text:'<strong>保护功能</strong>：正常状态下假声带外展，为真声带提供润滑和保护'},
+      {icon:'⚠️',text:'<strong>异常内收</strong>：过度紧张时假声带向中线靠拢甚至参与振动，产生"双音源"效应 → 声音粗糙'},
+      {icon:'🎸',text:'<strong>特殊用途</strong>：喉音歌唱（图瓦Throat Singing）和某些摇滚嘶吼（Screaming）有意利用假声带振动'},
+    ],
+    singing:'假声带是"挤卡检测器"的关键目标。正常歌唱时假声带应该远离。当你挤卡时，假声带被迫参与振动，声音变得粗糙，HNR急剧下降。Vibesing检测到HNR < 12dB，很大一部分原因就是假声带在"捣乱"。'
+  },
+  arytenoid:{name:'杓状软骨',latin:'Cartilago Arytenoidea',icon:'🎯',
+    desc:'一对小三棱锥形软骨，坐落在环状软骨后上缘。声带后端附着在杓状软骨的声带突上。杓状软骨的微小运动直接控制声带的开合。',
+    facts:[
+      {icon:'📐',text:'<strong>3个突起</strong>：声带突（附着声带）、肌突（附着开合肌）、顶（附着韧带）'},
+      {icon:'🔄',text:'<strong>精密运动</strong>：可做内收（关闭声门）、外展（打开声门）、内旋、外旋。是喉部最灵活的结构'},
+      {icon:'💨',text:'<strong>呼吸vs发声</strong>：呼吸时杓状软骨外展=声门大开；发声时内收=声门闭合。每说一句话都在快速切换'},
+    ],
+    singing:'杓状软骨是声带开合的"操纵杆"。环杓侧肌和杓间肌拉杓状软骨向中线=声门关闭=发声。后环杓肌拉杓状软骨外展=声门打开=呼吸。声乐中的"闭合"好坏，取决于杓状软骨的精确控制。'
+  },
+  cricoid:{name:'环状软骨',latin:'Cartilago Cricoidea',icon:'💍',
+    desc:'完整的环形软骨，形如图章环（前窄后宽）。是喉部唯一的完整环形结构，也是整个喉骨架的基座。环甲关节和环杓关节都在这里。',
+    facts:[
+      {icon:'💍',text:'<strong>前低后高</strong>：前弓高5-7mm，后板高20-30mm。杓状软骨坐在后板上缘'},
+      {icon:'🔗',text:'<strong>两大关节</strong>：环甲关节（调音高）和环杓关节（调开合）。两个关节覆盖了声带控制的所有自由度'},
+      {icon:'🏗️',text:'<strong>不可损伤</strong>：环状软骨是气道唯一完整支撑。临床上损伤环状软骨=气道塌陷危险'},
+    ],
+    singing:'环状软骨是声带调控的"地基"。环甲肌（CT）连接甲状软骨和环状软骨，收缩时拉动甲状软骨前倾、声带拉长——这就是高音机能（CT机能/头声）。如果你理解了环甲关节，你就理解了头声的物理本质。'
+  },
+  trachea:{name:'气管',latin:'Trachea',icon:'🌬️',
+    desc:'连接喉与肺的管状通道，由16-20个C形透明软骨环支撑。后壁为膜性壁（含平滑肌），可随呼吸稍微调整管径。',
+    facts:[
+      {icon:'📏',text:'<strong>尺寸</strong>：长10-12cm，直径1.5-2cm。在隆突分为左右主支气管'},
+      {icon:'🌬️',text:'<strong>单向通道</strong>：纤毛上皮不断向上摆动，将异物和黏液推出 → 就是咳嗽排痰的机制'},
+      {icon:'🔊',text:'<strong>声学通道</strong>：气管是声道的一部分（声门下声道），其长度和形状也参与共鸣'},
+    ],
+    singing:'气管是"气息输送管"。声门下压力（声带下方的气压）直接来自气管输送的气流。气息训练的目标就是精确控制通过气管送达声门的气流量和压力。Vibesing通过Energy检测间接评估声门下压力状态。'
+  },
+};
+
+function showInfo(el){
+  document.querySelectorAll('.hotspot').forEach(h=>h.classList.remove('active'));
+  el.classList.add('active');
+  const d = LARYNX_DATA[el.dataset.id];
+  if(!d) return;
+  document.getElementById('ipName').textContent = d.name;
+  document.getElementById('ipLatin').textContent = d.latin;
+  document.getElementById('ipDesc').textContent = d.desc;
+  document.getElementById('ipFacts').innerHTML = d.facts.map(f=>`
+    <div class="ip-fact"><div class="ip-fact-icon">${f.icon}</div><div class="ip-fact-text">${f.text}</div></div>
+  `).join('');
+  document.getElementById('ipSingingText').textContent = d.singing;
+  const panel = document.getElementById('infoPanel');
+  panel.classList.add('highlight');
+  setTimeout(()=>panel.classList.remove('highlight'),500);
+}
+
+// ===== MUSCLES DATABASE =====
+const MUSCLES=[
+  {icon:'🔴',name:'甲杓肌 (TA)',latin:'Thyroarytenoid Muscle',role:'声带的"体"。构成声带肌本身，收缩时声带变短变厚→音低+胸声。是低音和胸声的主导肌肉。过度激活=挤卡。',tags:['内收','变厚','胸声主导'],nerve:'喉返神经',color:'var(--red)'},
+  {icon:'🔵',name:'环甲肌 (CT)',latin:'Cricothyroid Muscle',role:'声带的"拉伸器"。唯一的外在喉肌受上喉神经控制。收缩时甲状软骨前倾→声带拉长变薄→音高升高。是高音和头声的主导肌肉。',tags:['拉长','变薄','头声主导'],nerve:'上喉神经外支',color:'var(--cyan)'},
+  {icon:'🟢',name:'环杓后肌 (PCA)',latin:'Posterior Cricoarytenoid',role:'声带唯一的"外展肌"（打开声门）。每次呼吸都需要PCA将声带拉开。如果PCA麻痹=声门无法打开=呼吸困难。最重要的安全肌肉。',tags:['外展','打开声门','呼吸'],nerve:'喉返神经',color:'var(--green)'},
+  {icon:'🟡',name:'环杓侧肌 (LCA)',latin:'Lateral Cricoarytenoid',role:'声带主要的"内收肌"之一。将杓状软骨向前内旋转，关闭声门的膜间部分。是有控制地闭合声门的精密肌肉。',tags:['内收','闭合前部','精密控制'],nerve:'喉返神经',color:'var(--yellow)'},
+  {icon:'🟣',name:'杓间肌 (IA)',latin:'Interarytenoid Muscle',role:'唯一的不成对喉肌。连接两侧杓状软骨，收缩时将两杓状软骨拉拢→关闭声门后联合。与LCA协同完成完整声门闭合。',tags:['内收','闭合后部','协同TA'],nerve:'喉返神经',color:'var(--purple)'},
+  {icon:'🟠',name:'二腹肌',latin:'Digastric Muscle',role:'舌骨上肌群之一。前腹附于下颌，后腹附于乳突。打开下巴+提升舌骨。过度活跃时会拉高喉位，是"下巴紧张"的元凶之一。',tags:['舌骨上','开下巴','拉高喉位'],nerve:'三叉/面神经',color:'var(--orange)'},
+  {icon:'💪',name:'胸骨舌骨肌',latin:'Sternohyoid Muscle',role:'舌骨下肌群之一。从胸骨连到舌骨。收缩时稳定/下拉舌骨+喉头。是"打哈欠降喉位"时主要工作的肌肉。歌手的秘密武器。',tags:['舌骨下','降喉位','稳定喉头'],nerve:'颈袢(C1-C3)',color:'var(--cyan)'},
+  {icon:'🫁',name:'横膈膜',latin:'Diaphragm',role:'人体最重要的呼吸肌。穹顶形肌膜将胸腔和腹腔分隔。收缩下降时胸腔扩大、肺部充气。是歌唱气息支撑的发动机。可下降7-10cm（训练歌手）。',tags:['吸气主肌','圆顶下降','气息发动机'],nerve:'膈神经(C3-5)',color:'var(--green)'},
+  {icon:'💨',name:'腹直肌',latin:'Rectus Abdominis',role:'六块腹肌。歌唱中不是用来"推气"的！而是提供向上的对抗力，配合横膈膜形成Appoggio支撑。控制呼气速率，避免气流一下子全出去。',tags:['呼气控制','Appoggio','对抗平衡'],nerve:'肋间神经(T7-T12)',color:'var(--orange)'},
+  {icon:'🔄',name:'腹横肌',latin:'Transversus Abdominis',role:'最深层腹肌，像束腰带一样包裹腹腔。收缩时均匀增加腹内压，是最精密的呼气流量调节器。声乐教师说的"支撑住"主要靠这块肌肉。',tags:['深层稳定','精密气流','束腰效应'],nerve:'肋间神经+髂腹下神经',color:'var(--purple)'},
+  {icon:'🦴',name:'肋间外肌',latin:'External Intercostal',role:'填充在肋骨之间的扇形肌层。收缩时升高肋骨、扩大胸腔→辅助吸气。歌唱中维持肋骨展开（不让胸廓塌陷）对稳定气息非常重要。',tags:['辅助吸气','肋骨外展','胸廓维持'],nerve:'肋间神经',color:'var(--yellow)'},
+  {icon:'👅',name:'舌肌群',latin:'Tongue Muscles (8 muscles)',role:'舌头由8块肌肉组成（4对）。内肌改变舌形，外肌移动舌位。舌头位置直接影响口腔共鸣空间、元音清晰度。舌根后退是常见错误。',tags:['元音塑形','共鸣调节','8块肌肉'],nerve:'舌下神经(XII)',color:'var(--pink)'},
+];
+
+(function renderMuscles(){
+  const grid=document.getElementById('muscleGrid');
+  MUSCLES.forEach(m=>{
+    const card=document.createElement('div');
+    card.className='m-card';
+    card.innerHTML=`
+      <div class="m-head">
+        <div class="m-icon" style="background:${m.color}15">${m.icon}</div>
+        <div><div class="m-name">${m.name}</div><div class="m-latin">${m.latin}</div></div>
+      </div>
+      <div class="m-role">${m.role}</div>
+      <div class="m-details">
+        ${m.tags.map(t=>`<span class="m-tag action">${t}</span>`).join('')}
+        <span class="m-tag nerve">🧠 ${m.nerve}</span>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+})();
+
+// ===== BREATHING PHASES =====
+const BREATH_DATA={
+  inhale:{name:'吸气阶段',latin:'Inspiration Phase',
+    desc:'横膈膜收缩下降 7-10cm（训练良好的歌手），胸腔容积增大，肺内压降低至大气压以下，空气被动流入。肋间外肌辅助升高肋骨，进一步扩大胸腔。',
+    facts:[
+      {icon:'📐',text:'<strong>横膈膜下降</strong>：日常2cm → 深呼吸5cm → 歌手训练后7-10cm'},
+      {icon:'🫁',text:'<strong>肺活量利用</strong>：歌唱时使用60-70%肺活量即可（过满=僵硬=无法灵活控制）'},
+      {icon:'⏱️',text:'<strong>速度要求</strong>：歌唱吸气在0.3-0.5秒内完成，不是慢慢深呼吸！快速+深入'},
+    ]},
+  exhale:{name:'呼气阶段',latin:'Expiration Phase',
+    desc:'横膈膜放松上升，腹肌群（特别是腹横肌）收缩提供向上的气压。肋间内肌降低肋骨，胸腔缩小。气流经声门振动声带发声。关键是"控制"而非"推出"。',
+    facts:[
+      {icon:'💨',text:'<strong>声门下压力</strong>：歌唱需要5-15 cmH₂O（大白嗓可达40 cmH₂O！）。正常说话约5-8 cmH₂O'},
+      {icon:'⏱️',text:'<strong>最大发声时间</strong>：训练者>20秒，未训练10-15秒。这直接反映呼气控制能力'},
+      {icon:'🎵',text:'<strong>流量控制</strong>：歌唱气流约100-200 mL/s（漏气者>300 mL/s，大部分气流被浪费）'},
+    ]},
+  appoggio:{name:'Appoggio 支撑',latin:'Italian: "Lean / Support"',
+    desc:'意大利声乐核心概念。不是单纯"用力"，而是横膈膜下降力量和腹肌上推力量的动态平衡。像拔河一样，两股力量对抗产生稳定的气柱压力，是高级歌唱控制的基石。',
+    facts:[
+      {icon:'⚖️',text:'<strong>对抗平衡</strong>：横膈膜"不想上去" vs 腹肌"推它上去"=精确可控的声门下压力'},
+      {icon:'🏋️',text:'<strong>肋骨保持</strong>：吸气后肋骨扩张状态尽量保持（不塌陷），延缓呼气速度'},
+      {icon:'🎯',text:'<strong>训练标志</strong>：长音后半段音量/音质不衰减 = Appoggio成功建立'},
+    ]},
+};
+
+function setPhase(phase,btn){
+  document.querySelectorAll('.phase-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = BREATH_DATA[phase];
+  document.querySelector('#breathPanel .ip-name').textContent = d.name;
+  document.querySelector('#breathPanel .ip-latin').textContent = d.latin;
+  document.getElementById('breathDesc').textContent = d.desc;
+  document.getElementById('breathFacts').innerHTML = d.facts.map(f=>`
+    <div class="ip-fact"><div class="ip-fact-icon">${f.icon}</div><div class="ip-fact-text">${f.text}</div></div>
+  `).join('');
+  
+  const inhaleArrows = document.getElementById('arrowsInhale');
+  const exhaleArrows = document.getElementById('arrowsExhale');
+  const diaAnim = document.getElementById('diaAnim');
+  
+  if(phase==='inhale'){
+    inhaleArrows.style.display='';exhaleArrows.style.display='none';
+    diaAnim.setAttribute('values','M70 280 Q140 310 200 315 Q260 310 330 280;M70 280 Q140 340 200 350 Q260 340 330 280;M70 280 Q140 310 200 315 Q260 310 330 280');
+  }else if(phase==='exhale'){
+    inhaleArrows.style.display='none';exhaleArrows.style.display='';
+    diaAnim.setAttribute('values','M70 280 Q140 340 200 350 Q260 340 330 280;M70 280 Q140 310 200 315 Q260 310 330 280;M70 280 Q140 340 200 350 Q260 340 330 280');
+  }else{
+    inhaleArrows.style.display='';exhaleArrows.style.display='';
+    diaAnim.setAttribute('values','M70 280 Q140 325 200 330 Q260 325 330 280;M70 280 Q140 325 200 332 Q260 325 330 280;M70 280 Q140 325 200 330 Q260 325 330 280');
+  }
+}
+
+// ===== VOCAL PROCESS =====
+const PROCESS=[
+  {icon:'🧠',title:'1. 大脑发出指令',desc:'运动皮层和Broca区发出发声指令，通过迷走神经(X)传递到喉部肌群，同时通过膈神经(C3-5)控制呼吸。从意图到执行仅需50-80ms。',tags:['运动皮层','迷走神经','膈神经','50-80ms延迟']},
+  {icon:'🫁',title:'2. 横膈膜启动呼气',desc:'腹肌群启动收缩，横膈膜从最低位开始上升。肋间内肌辅助缩小胸腔。气流从肺经支气管、气管向上输送。',tags:['横膈膜上升','腹横肌','肋间内肌','气流启动']},
+  {icon:'💨',title:'3. 声门下压力建立',desc:'气流到达声带下方，在闭合的声门下方形成压力（5-15 cmH₂O）。这个压力是声带振动的直接动力。压力过大=伤声带，过小=声音虚弱。',tags:['Ps: 5-15 cmH₂O','Bernoulli效应','气流阻力匹配']},
+  {icon:'🎤',title:'4. 声带振动（Phonation）',desc:'声门下压力突破声带闭合力→声门打开→气流通过→Bernoulli效应吸声带回闭→压力再次积累→循环反复。这就是"黏膜波"。每秒数百次。',tags:['黏膜波','闭合商(CQ)','自振荡','Body-Cover理论']},
+  {icon:'🔊',title:'5. 基频+泛音产生',desc:'声带振动产生基频(F0)和丰富的整数倍谐波（泛音列）。声带振动波形不是正弦波，而是复杂的脉冲波形，因此自然包含大量泛音。',tags:['基频F0','谐波列','脉冲波形','声源频谱']},
+  {icon:'🏛️',title:'6. 共鸣腔塑形（Resonance）',desc:'声源信号通过咽腔→口腔→鼻腔（声道），声道作为谐振器，选择性放大某些频率（共振峰F1-F5）。声道形状决定元音（/a/=/大口腔/，/i/=/高舌位/）。',tags:['共振峰F1-F5','声道滤波','元音塑形','Singer\'s Formant 2.5-3.5kHz']},
+  {icon:'👂',title:'7. 声音辐射+听觉反馈',desc:'声音从嘴唇辐射到空气中（高频指向性、低频全向）。同时通过骨传导和气传导到达自己的耳蜗，形成闭环反馈控制。骨传导偏低频，这就是为什么录音和自己听不一样。',tags:['辐射阻抗','骨传导','听觉反馈环','自我感知偏差']},
+];
+
+(function renderProcess(){
+  const el = document.getElementById('processTimeline');
+  PROCESS.forEach(p=>{
+    el.innerHTML+=`
+      <div class="pt-step">
+        <div class="pt-num">${p.icon}</div>
+        <div class="pt-content">
+          <div class="pt-title">${p.title}</div>
+          <div class="pt-desc">${p.desc}</div>
+          <div class="pt-tags">${p.tags.map(t=>`<span class="pt-tag">${t}</span>`).join('')}</div>
+        </div>
+      </div>
+    `;
+  });
+})();
+
+// ===== RESONANCE =====
+const RESONANCE=[
+  {icon:'🔴',name:'咽腔 Pharynx',latin:'Pharyngeal Cavity',role:'最重要的可调共鸣器。长约12cm，从鼻咽到喉咽。通过喉位升降改变长度（±30%），通过舌根和咽肌改变宽度。咽腔是Singer\'s Formant（2.5-3.5kHz）的主要来源。喉位每降1cm，所有共振峰下移约50-80Hz。',tags:['F1/F2调节','Singer\'s Formant','喉位依赖','最大可变性'],color:'var(--red)'},
+  {icon:'🟡',name:'口腔 Oral Cavity',latin:'Buccal Cavity',role:'最灵活的共鸣器。通过舌位、唇形、下巴开合改变形状。是元音区分的主要场所：/a/=舌低张嘴大（F1高），/i/=舌高靠前（F2高），/u/=舌后缩圆唇（F2低）。口腔形状变化速度可达每秒10次以上。',tags:['元音塑形','舌位控制','唇形','F2主导'],color:'var(--yellow)'},
+  {icon:'🔵',name:'鼻腔 Nasal Cavity',latin:'Nasal Cavity',role:'固定形状共鸣器（不可主动改变）。软腭上提时鼻腔断开（口元音），软腭下垂时鼻腔参与（鼻元音/m/n/ng）。过度鼻腔耦合=鼻音太重=在1000Hz附近产生反共振（零点），削弱能量。',tags:['固定形状','软腭控制','反共振','鼻音辅音'],color:'var(--cyan)'},
+  {icon:'🟣',name:'鼻窦 Paranasal Sinuses',latin:'Frontal / Maxillary / Sphenoid / Ethmoid',role:'四对含气骨腔。传统声乐教的"面罩共鸣"感觉来自鼻窦区域的振动（额窦/上颌窦骨壁振动传导），但声学研究表明鼻窦对声音辐射贡献很小。它更多是"触觉反馈"而非真正的"声学共鸣"。',tags:['面罩感觉','触觉反馈','声学贡献小','教学争议'],color:'var(--purple)'},
+  {icon:'🟠',name:'胸腔 Chest Cavity',latin:'Thoracic Cavity',role:'低频共鸣感受器。胸腔骨壁可以感受到低频（100-300Hz）的振动传导，这就是"胸声"的触觉来源。但声学上胸腔不是有效共鸣器（声音从声门向上辐射，很少向下传播）。胸腔振动更多是诊断工具而非音色来源。',tags:['低频振动','触觉反馈','胸声来源','诊断工具'],color:'var(--orange)'},
+];
+
+(function renderResonance(){
+  const grid=document.getElementById('resonanceGrid');
+  RESONANCE.forEach(r=>{
+    const card=document.createElement('div');
+    card.className='m-card';
+    card.innerHTML=`
+      <div class="m-head">
+        <div class="m-icon" style="background:${r.color}15">${r.icon}</div>
+        <div><div class="m-name">${r.name}</div><div class="m-latin">${r.latin}</div></div>
+      </div>
+      <div class="m-role">${r.role}</div>
+      <div class="m-details">${r.tags.map(t=>`<span class="m-tag action">${t}</span>`).join('')}</div>
+    `;
+    grid.appendChild(card);
+  });
+})();
+
+// ===== NAV TABS =====
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById(`sec-${tab.dataset.sec}`).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
