@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 练声计划生成器 — Vibesing 高音觉醒</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050509;--card:rgba(255,255,255,0.022);
+  --glass:rgba(255,255,255,0.035);--border:rgba(255,255,255,0.055);
+  --cyan:#00e5ff;--pink:#ff2d78;--purple:#b44aff;
+  --green:#00ff88;--yellow:#ffd700;--orange:#ff8a3d;--red:#ff3b5c;
+  --text:#e4e4f0;--dim:#5e5e74;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);overflow-x:hidden;
+  min-height:100vh;
+}
+.aurora{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 50% at 15% 25%,rgba(0,229,255,0.06),transparent),
+    radial-gradient(ellipse 60% 60% at 85% 75%,rgba(180,74,255,0.05),transparent);
+  animation:hue 18s ease-in-out infinite alternate;
+}
+@keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(15deg)}}
+
+.container{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:0 20px}
+
+/* ===== HERO ===== */
+.hero{padding:80px 0 30px;text-align:center}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 18px;border-radius:50px;font-size:0.72rem;
+  letter-spacing:2px;text-transform:uppercase;
+  border:1px solid rgba(180,74,255,0.25);color:var(--purple);
+  background:rgba(180,74,255,0.06);margin-bottom:20px;
+}
+.hero h1{
+  font-size:clamp(2rem,5vw,3.5rem);font-weight:800;line-height:1.15;
+  margin-bottom:12px;
+  background:linear-gradient(135deg,#fff 10%,var(--purple) 50%,var(--cyan) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero p{max-width:580px;margin:0 auto;color:var(--dim);font-size:0.95rem;line-height:1.7}
+
+/* ===== WIZARD STEPS ===== */
+.wizard{padding:40px 0}
+.steps-indicator{
+  display:flex;justify-content:center;gap:4px;margin-bottom:40px;
+}
+.step-dot{
+  width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,0.06);
+  transition:all 0.5s;cursor:pointer;
+}
+.step-dot.active{background:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,0.3)}
+.step-dot.done{background:var(--green)}
+
+/* Step panels */
+.step-panel{
+  display:none;animation:fadeIn 0.5s ease;
+}
+.step-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.step-title{
+  font-size:1.5rem;font-weight:800;margin-bottom:8px;text-align:center;
+}
+.step-sub{
+  font-size:0.85rem;color:var(--dim);text-align:center;margin-bottom:30px;
+}
+
+/* ===== STEP 1: Problem Selector ===== */
+.problem-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:12px;
+}
+.problem-opt{
+  padding:16px;border-radius:16px;
+  background:var(--glass);border:2px solid transparent;
+  cursor:pointer;transition:all 0.3s;
+  text-align:center;position:relative;
+}
+.problem-opt:hover{background:rgba(255,255,255,0.05);transform:translateY(-2px)}
+.problem-opt.selected{
+  border-color:var(--cyan);background:rgba(0,229,255,0.06);
+  box-shadow:0 0 20px rgba(0,229,255,0.1);
+}
+.problem-opt .po-icon{font-size:1.6rem;margin-bottom:6px}
+.problem-opt .po-name{font-size:0.85rem;font-weight:700;margin-bottom:2px}
+.problem-opt .po-desc{font-size:0.68rem;color:var(--dim)}
+.problem-opt .po-check{
+  position:absolute;top:8px;right:8px;width:20px;height:20px;
+  border-radius:50%;border:2px solid rgba(255,255,255,0.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.6rem;transition:all 0.3s;
+}
+.problem-opt.selected .po-check{
+  background:var(--cyan);border-color:var(--cyan);color:#000;
+}
+
+/* ===== STEP 2: Severity Slider ===== */
+.severity-section{max-width:600px;margin:0 auto}
+.sev-card{
+  padding:20px;border-radius:16px;background:var(--glass);
+  border:1px solid var(--border);margin-bottom:14px;
+  display:flex;align-items:center;gap:16px;
+}
+.sev-name{width:100px;font-size:0.85rem;font-weight:600;flex-shrink:0}
+.sev-slider{
+  flex:1;-webkit-appearance:none;appearance:none;height:6px;
+  border-radius:3px;background:rgba(255,255,255,0.06);outline:none;
+  cursor:pointer;
+}
+.sev-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:var(--cyan);cursor:pointer;
+  box-shadow:0 0 10px rgba(0,229,255,0.3);
+}
+.sev-val{
+  width:50px;text-align:center;font-size:0.9rem;font-weight:800;
+  font-variant-numeric:tabular-nums;
+}
+.sev-label{font-size:0.65rem;color:var(--dim);text-align:center;margin-top:2px}
+
+/* ===== STEP 3: Time/Goal ===== */
+.config-section{max-width:600px;margin:0 auto}
+.config-row{
+  display:flex;gap:12px;margin-bottom:16px;
+}
+.config-card{
+  flex:1;padding:20px;border-radius:16px;text-align:center;
+  background:var(--glass);border:2px solid transparent;
+  cursor:pointer;transition:all 0.3s;
+}
+.config-card:hover{background:rgba(255,255,255,0.05)}
+.config-card.selected{border-color:var(--purple);background:rgba(180,74,255,0.06)}
+.config-card .cc-icon{font-size:1.5rem;margin-bottom:6px}
+.config-card .cc-val{font-size:1.1rem;font-weight:800}
+.config-card .cc-label{font-size:0.68rem;color:var(--dim);margin-top:2px}
+
+.config-label{
+  font-size:0.8rem;font-weight:600;margin-bottom:10px;
+  color:var(--dim);
+}
+
+/* ===== GENERATE BUTTON ===== */
+.gen-wrap{text-align:center;padding:30px 0}
+.btn-gen{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:16px 40px;border:none;border-radius:50px;
+  background:linear-gradient(135deg,var(--purple),var(--cyan));
+  color:#000;font-size:1rem;font-weight:800;cursor:pointer;
+  letter-spacing:1px;transition:all 0.3s;
+}
+.btn-gen:hover{transform:scale(1.04);box-shadow:0 0 30px rgba(180,74,255,0.3)}
+.btn-gen:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ===== NAV BUTTONS ===== */
+.nav-btns{
+  display:flex;justify-content:center;gap:12px;margin-top:30px;
+}
+.btn-nav{
+  padding:12px 28px;border-radius:50px;font-size:0.85rem;font-weight:700;
+  cursor:pointer;transition:all 0.3s;letter-spacing:0.5px;
+}
+.btn-prev{
+  background:none;border:1px solid var(--border);color:var(--dim);
+}
+.btn-prev:hover{border-color:var(--text);color:var(--text)}
+.btn-next{
+  background:linear-gradient(135deg,var(--cyan),var(--purple));
+  border:none;color:#000;
+}
+.btn-next:hover{transform:scale(1.03);box-shadow:0 0 20px rgba(0,229,255,0.2)}
+.btn-next:disabled{opacity:0.3;cursor:not-allowed;transform:none}
+
+/* ===== LOADING ANIMATION ===== */
+.loading-overlay{
+  display:none;position:fixed;inset:0;z-index:100;
+  background:rgba(5,5,9,0.95);
+  flex-direction:column;align-items:center;justify-content:center;
+}
+.loading-overlay.show{display:flex}
+.loading-ring{
+  width:60px;height:60px;border:3px solid rgba(255,255,255,0.06);
+  border-top:3px solid var(--cyan);border-radius:50%;
+  animation:spin 1s linear infinite;margin-bottom:20px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{
+  font-size:0.9rem;color:var(--dim);
+  animation:pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:0.5}50%{opacity:1}}
+.loading-steps{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.loading-step{
+  font-size:0.75rem;color:var(--dim);display:flex;align-items:center;gap:8px;
+  opacity:0;transition:opacity 0.5s;
+}
+.loading-step.show{opacity:1}
+.loading-step .ls-icon{color:var(--green)}
+
+/* ===== RESULT PLAN ===== */
+.result{display:none;padding:40px 0 80px}
+.result.show{display:block;animation:fadeIn 0.8s ease}
+
+.result-header{text-align:center;margin-bottom:40px}
+.result-header h2{
+  font-size:2rem;font-weight:800;margin-bottom:8px;
+  background:linear-gradient(135deg,var(--green),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.result-header p{color:var(--dim);font-size:0.9rem}
+
+/* Summary card */
+.summary-card{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;margin-bottom:30px;
+}
+.summary-item{
+  padding:18px;border-radius:16px;text-align:center;
+  background:var(--glass);border:1px solid var(--border);
+}
+.si-value{font-size:1.5rem;font-weight:900;margin-bottom:4px}
+.si-label{font-size:0.68rem;color:var(--dim);letter-spacing:0.5px}
+
+/* Week plan */
+.week-tabs{
+  display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;
+}
+.week-tab{
+  padding:8px 16px;border-radius:50px;font-size:0.75rem;font-weight:700;
+  background:var(--glass);border:1px solid var(--border);
+  cursor:pointer;transition:all 0.3s;color:var(--dim);
+}
+.week-tab:hover,.week-tab.active{
+  background:rgba(0,229,255,0.08);border-color:var(--cyan);color:var(--cyan);
+}
+
+.day-plan{display:none}
+.day-plan.active{display:block;animation:fadeIn 0.4s ease}
+
+.day-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:24px;margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.day-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  border-radius:0 2px 2px 0;
+}
+.day-card.warmup::before{background:var(--yellow)}
+.day-card.core::before{background:var(--cyan)}
+.day-card.cooldown::before{background:var(--green)}
+.day-card.rest::before{background:var(--purple)}
+
+.dc-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.dc-badge{
+  padding:4px 10px;border-radius:8px;font-size:0.65rem;font-weight:800;
+  letter-spacing:0.5px;
+}
+.dc-badge.warmup{background:rgba(255,215,0,0.1);color:var(--yellow)}
+.dc-badge.core{background:rgba(0,229,255,0.1);color:var(--cyan)}
+.dc-badge.cooldown{background:rgba(0,255,136,0.1);color:var(--green)}
+.dc-badge.rest{background:rgba(180,74,255,0.1);color:var(--purple)}
+.dc-title{font-size:0.95rem;font-weight:700;flex:1}
+.dc-time{font-size:0.75rem;color:var(--dim)}
+
+.dc-steps{display:flex;flex-direction:column;gap:8px}
+.dc-step{
+  display:flex;gap:10px;padding:10px 12px;border-radius:10px;
+  background:rgba(255,255,255,0.015);font-size:0.8rem;
+  transition:background 0.3s;
+}
+.dc-step:hover{background:rgba(255,255,255,0.04)}
+.dc-step-num{
+  width:22px;height:22px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.68rem;font-weight:800;flex-shrink:0;
+  background:rgba(0,229,255,0.08);color:var(--cyan);
+}
+.dc-step-text{color:var(--dim);line-height:1.5}
+.dc-step-text strong{color:var(--text)}
+
+/* Warning */
+.plan-warning{
+  padding:14px 18px;border-radius:14px;margin-top:20px;
+  background:rgba(255,215,0,0.03);border:1px solid rgba(255,215,0,0.1);
+  font-size:0.78rem;color:var(--dim);line-height:1.6;
+  display:flex;align-items:flex-start;gap:10px;
+}
+.plan-warning strong{color:var(--yellow)}
+
+/* Restart */
+.restart-wrap{text-align:center;margin-top:30px}
+.btn-restart{
+  padding:12px 28px;border:1px solid var(--border);border-radius:50px;
+  background:none;color:var(--dim);font-size:0.85rem;font-weight:600;
+  cursor:pointer;transition:all 0.3s;
+}
+.btn-restart:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* Responsive */
+@media(max-width:600px){
+  .problem-grid{grid-template-columns:1fr 1fr}
+  .config-row{flex-direction:column}
+  .summary-card{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora"></div>
+
+<div class="container">
+  <section class="hero">
+    <div class="hero-tag">🤖 AI Plan Generator</div>
+    <h1>AI 练声计划<br>生成器</h1>
+    <p>告诉我你的问题，AI 为你量身定制专属练声计划。<br>3步诊断 → 1键生成 → 跟着练就行。</p>
+  </section>
+
+  <!-- Wizard -->
+  <section class="wizard" id="wizard">
+    <div class="steps-indicator">
+      <div class="step-dot active" data-step="0"></div>
+      <div class="step-dot" data-step="1"></div>
+      <div class="step-dot" data-step="2"></div>
+    </div>
+
+    <!-- Step 1: Select problems -->
+    <div class="step-panel active" id="step0">
+      <div class="step-title">你有哪些声乐问题？</div>
+      <div class="step-sub">选择所有符合的问题（可多选）</div>
+      <div class="problem-grid" id="problemGrid"></div>
+      <div class="nav-btns">
+        <button class="btn-nav btn-next" id="btn0next" disabled onclick="goStep(1)">下一步 →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Severity -->
+    <div class="step-panel" id="step1">
+      <div class="step-title">每个问题有多严重？</div>
+      <div class="step-sub">拖动滑块评估严重程度（1=轻微 · 5=非常严重）</div>
+      <div class="severity-section" id="severitySection"></div>
+      <div class="nav-btns">
+        <button class="btn-nav btn-prev" onclick="goStep(0)">← 上一步</button>
+        <button class="btn-nav btn-next" onclick="goStep(2)">下一步 →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Config -->
+    <div class="step-panel" id="step2">
+      <div class="step-title">你的练习条件</div>
+      <div class="step-sub">设置每天可用时间和训练目标</div>
+      <div class="config-section">
+        <div class="config-label">⏱️ 每天练声时间</div>
+        <div class="config-row" id="timeRow">
+          <div class="config-card" data-val="10" onclick="selectConfig(this,'time')">
+            <div class="cc-icon">🌱</div>
+            <div class="cc-val">10 分钟</div>
+            <div class="cc-label">碎片时间</div>
+          </div>
+          <div class="config-card selected" data-val="20" onclick="selectConfig(this,'time')">
+            <div class="cc-icon">⚡</div>
+            <div class="cc-val">20 分钟</div>
+            <div class="cc-label">推荐</div>
+          </div>
+          <div class="config-card" data-val="30" onclick="selectConfig(this,'time')">
+            <div class="cc-icon">🔥</div>
+            <div class="cc-val">30 分钟</div>
+            <div class="cc-label">深度训练</div>
+          </div>
+        </div>
+
+        <div class="config-label" style="margin-top:20px">🎯 训练目标</div>
+        <div class="config-row" id="goalRow">
+          <div class="config-card selected" data-val="fix" onclick="selectConfig(this,'goal')">
+            <div class="cc-icon">🩹</div>
+            <div class="cc-val">修正问题</div>
+            <div class="cc-label">解决当前错误</div>
+          </div>
+          <div class="config-card" data-val="grow" onclick="selectConfig(this,'goal')">
+            <div class="cc-icon">📈</div>
+            <div class="cc-val">能力提升</div>
+            <div class="cc-label">拓展音域和技巧</div>
+          </div>
+          <div class="config-card" data-val="maintain" onclick="selectConfig(this,'goal')">
+            <div class="cc-icon">🛡️</div>
+            <div class="cc-val">保持状态</div>
+            <div class="cc-label">日常声带保养</div>
+          </div>
+        </div>
+
+        <div class="config-label" style="margin-top:20px">📅 计划周期</div>
+        <div class="config-row" id="durationRow">
+          <div class="config-card" data-val="2" onclick="selectConfig(this,'duration')">
+            <div class="cc-icon">🏃</div>
+            <div class="cc-val">2 周</div>
+            <div class="cc-label">快速冲刺</div>
+          </div>
+          <div class="config-card selected" data-val="4" onclick="selectConfig(this,'duration')">
+            <div class="cc-icon">🚀</div>
+            <div class="cc-val">4 周</div>
+            <div class="cc-label">标准周期</div>
+          </div>
+          <div class="config-card" data-val="8" onclick="selectConfig(this,'duration')">
+            <div class="cc-icon">🏔️</div>
+            <div class="cc-val">8 周</div>
+            <div class="cc-label">深度改造</div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn-nav btn-prev" onclick="goStep(1)">← 上一步</button>
+      </div>
+      <div class="gen-wrap">
+        <button class="btn-gen" onclick="generate()">✨ 生成我的练声计划</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Loading -->
+  <div class="loading-overlay" id="loading">
+    <div class="loading-ring"></div>
+    <div class="loading-text">AI 正在分析你的声乐问题...</div>
+    <div class="loading-steps" id="loadingSteps">
+      <div class="loading-step"><span class="ls-icon">✓</span> 分析问题严重程度</div>
+      <div class="loading-step"><span class="ls-icon">✓</span> 匹配训练方法库</div>
+      <div class="loading-step"><span class="ls-icon">✓</span> 计算训练优先级</div>
+      <div class="loading-step"><span class="ls-icon">✓</span> 生成每日计划</div>
+      <div class="loading-step"><span class="ls-icon">✓</span> 优化时间分配</div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <section class="result" id="result">
+    <div class="result-header">
+      <h2>✨ 你的专属练声计划</h2>
+      <p id="resultSub"></p>
+    </div>
+
+    <div class="summary-card" id="summaryCard"></div>
+
+    <div class="week-tabs" id="weekTabs"></div>
+    <div id="weekPlans"></div>
+
+    <div class="plan-warning">
+      <span>⚠️</span>
+      <div>
+        <strong>重要提醒</strong>：如果练声过程中出现疼痛、声音嘶哑超过2天、说话费力等症状，请立即停止训练并咨询耳鼻喉科医生。AI计划不能替代专业医疗诊断。训练时请配合使用 <strong>Vibesing App</strong> 获得实时反馈。
+      </div>
+    </div>
+
+    <div class="restart-wrap">
+      <button class="btn-restart" onclick="restart()">🔄 重新生成</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+// ===== PROBLEM DATABASE =====
+const PROBLEMS = [
+  {id:'squeeze',icon:'🔴',name:'挤卡',desc:'高音紧/嗓子疼'},
+  {id:'breathy',icon:'💨',name:'漏气',desc:'声音虚弱'},
+  {id:'break',icon:'⚡',name:'换声区破音',desc:'高音断裂'},
+  {id:'yelling',icon:'📢',name:'大白嗓',desc:'靠喊唱高音'},
+  {id:'high_larynx',icon:'⬆️',name:'喉位高',desc:'声音尖薄'},
+  {id:'weak_breath',icon:'🫁',name:'气息不足',desc:'唱不了长音'},
+  {id:'mix_unstable',icon:'⚖️',name:'混声不稳',desc:'音色忽明忽暗'},
+  {id:'hard_attack',icon:'💥',name:'硬起始',desc:'每个音"咔咔"响'},
+  {id:'nasal',icon:'👃',name:'鼻音重',desc:'声音闷/鼻腔感'},
+  {id:'jaw_tension',icon:'😬',name:'下巴紧',desc:'咬肌紧张'},
+  {id:'tongue_root',icon:'👅',name:'舌根紧',desc:'声音堵/嗓子眼紧'},
+  {id:'no_vibrato',icon:'〰️',name:'颤音问题',desc:'没颤音/抖太厉害'},
+];
+
+// ===== EXERCISE DATABASE =====
+const EXERCISES = {
+  squeeze:[
+    {name:'气泡音放松',desc:'最低最轻的气泡音滑到中音区',time:2,type:'warmup'},
+    {name:'吸管吹水发声',desc:'水深3-5cm，发"呜"音上行',time:4,type:'core'},
+    {name:'半闭口哼鸣（M/NG）',desc:'嘴唇微闭，中音区哼鸣音阶',time:3,type:'core'},
+    {name:'叹气式下行',desc:'从G4用"啊~"叹气下行5度',time:3,type:'core'},
+  ],
+  breathy:[
+    {name:'清晰"嘿"闭合',desc:'短促有力发"嘿"×10次',time:2,type:'warmup'},
+    {name:'声门弹音练习',desc:'清晰"啊"起始，无气声',time:3,type:'core'},
+    {name:'嘟唇上行音阶',desc:'Lip Trill从A3到A4',time:3,type:'core'},
+    {name:'渐强长音',desc:'PP→MF用"i"做6秒渐强',time:3,type:'core'},
+  ],
+  break:[
+    {name:'Messa di Voce',desc:'换声点下方2度做PP→FF→PP',time:4,type:'core'},
+    {name:'"嘘~呜"滑音连接',desc:'胸声滑到头声再滑回来',time:3,type:'core'},
+    {name:'"Mum"半音阶',desc:'换声区逐半音上行停留3秒',time:4,type:'core'},
+    {name:'轻机能高音触达',desc:'极轻假声从换声点上方开始',time:3,type:'core'},
+  ],
+  yelling:[
+    {name:'夸张"Nay"练习',desc:'嘲笑语气做上行半音阶',time:3,type:'core'},
+    {name:'Cry质感哭腔',desc:'"Wah"模仿哭泣G4→C5',time:3,type:'core'},
+    {name:'音量递减高音',desc:'舒适音量到高音后渐弱到MP',time:3,type:'core'},
+    {name:'Belt↔Head切换',desc:'同音高交替Belt和Head质感',time:3,type:'core'},
+  ],
+  high_larynx:[
+    {name:'打哈欠降喉位',desc:'半哈欠状态发"啊"长音',time:3,type:'warmup'},
+    {name:'"Gug"降喉位发声',desc:'漱口音做C4→G4音阶',time:3,type:'core'},
+    {name:'Cover掩盖训练',desc:'高音"啊"往"嗷"内部调整',time:3,type:'core'},
+    {name:'胸腔共鸣"嗡"',desc:'低音"Ong"逐渐升高',time:2,type:'core'},
+  ],
+  weak_breath:[
+    {name:'腹式呼吸校准',desc:'平躺腹上放书，吸4-保4-呼8',time:3,type:'warmup'},
+    {name:'"嘶"延长呼气',desc:'均匀嘶音延长，目标30秒+',time:2,type:'core'},
+    {name:'断续呼气弹跳',desc:'嘶-嘶-嘶断续出气×20',time:2,type:'core'},
+    {name:'带阻力长音',desc:'Lip Trill或Straw维持6拍长音',time:3,type:'core'},
+  ],
+  mix_unstable:[
+    {name:'混声锚点固定',desc:'最稳混声音"Mum"保持8拍×10',time:4,type:'core'},
+    {name:'锚点半音展开',desc:'从锚点上下各扩1半音',time:3,type:'core'},
+    {name:'元音一致性',desc:'同音高唱a-e-i-o-u保持音色',time:3,type:'core'},
+    {name:'混声音量动态',desc:'PP→MF→PP保持混声质感',time:3,type:'core'},
+  ],
+  hard_attack:[
+    {name:'H引导柔和起始',desc:'用"ha"代替"a"开始发声',time:2,type:'warmup'},
+    {name:'Legato连字',desc:'Mah-May-Mee-Moh-Moo平滑过渡',time:3,type:'core'},
+    {name:'气流先行发声',desc:'先出气流再加声音',time:2,type:'core'},
+  ],
+  nasal:[
+    {name:'捏鼻子对比',desc:'捏鼻唱vs松开唱感受差异',time:2,type:'warmup'},
+    {name:'强"啊"开口练习',desc:'夸张张嘴发"啊"确保口腔共鸣',time:3,type:'core'},
+    {name:'软腭上提训练',desc:'模仿惊讶"啊！"的软腭感觉',time:2,type:'core'},
+  ],
+  jaw_tension:[
+    {name:'下巴按摩放松',desc:'双手按摩咬合肌30秒',time:1,type:'warmup'},
+    {name:'托下巴发声',desc:'手托下巴自然下放发"啊"',time:2,type:'core'},
+    {name:'三指开口练习',desc:'3指宽张嘴做元音练习',time:2,type:'core'},
+  ],
+  tongue_root:[
+    {name:'吐舌发声',desc:'舌尖伸出牙齿外发"啊"',time:2,type:'warmup'},
+    {name:'"Gee-Guh"交替',desc:'快速切换训练舌根灵活性',time:2,type:'core'},
+    {name:'打哈欠空间',desc:'哈欠感保持发声',time:2,type:'core'},
+  ],
+  no_vibrato:[
+    {name:'手动脉冲训练',desc:'腹部6Hz节奏脉冲诱导vibrato',time:3,type:'core'},
+    {name:'气流颤音过渡',desc:'ha-ha-ha急速→自然vibrato',time:3,type:'core'},
+    {name:'速率微调控制',desc:'有意识加快/减慢vibrato',time:3,type:'core'},
+  ],
+};
+
+// ===== STATE =====
+let selectedProblems = new Set();
+let severities = {};
+let config = {time:20,goal:'fix',duration:4};
+let currentStep = 0;
+
+// ===== RENDER STEP 1 =====
+(function renderProblems(){
+  const grid = document.getElementById('problemGrid');
+  PROBLEMS.forEach(p=>{
+    const el = document.createElement('div');
+    el.className='problem-opt';
+    el.dataset.id=p.id;
+    el.innerHTML=`
+      <div class="po-check"></div>
+      <div class="po-icon">${p.icon}</div>
+      <div class="po-name">${p.name}</div>
+      <div class="po-desc">${p.desc}</div>
+    `;
+    el.onclick=()=>{
+      el.classList.toggle('selected');
+      if(selectedProblems.has(p.id)) selectedProblems.delete(p.id);
+      else selectedProblems.add(p.id);
+      el.querySelector('.po-check').textContent = el.classList.contains('selected') ? '✓' : '';
+      document.getElementById('btn0next').disabled = selectedProblems.size === 0;
+    };
+    grid.appendChild(el);
+  });
+})();
+
+// ===== NAVIGATION =====
+function goStep(n){
+  if(n === 1 && selectedProblems.size === 0) return;
+  if(n === 1) buildSeverityPanel();
+  
+  document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`step${n}`).classList.add('active');
+  
+  document.querySelectorAll('.step-dot').forEach((d,i)=>{
+    d.classList.remove('active','done');
+    if(i < n) d.classList.add('done');
+    if(i === n) d.classList.add('active');
+  });
+  
+  currentStep = n;
+}
+
+function buildSeverityPanel(){
+  const sec = document.getElementById('severitySection');
+  sec.innerHTML = '';
+  const labels = ['','轻微','一般','明显','严重','非常严重'];
+  
+  selectedProblems.forEach(pid=>{
+    const p = PROBLEMS.find(x=>x.id===pid);
+    if(!severities[pid]) severities[pid] = 3;
+    
+    const card = document.createElement('div');
+    card.className='sev-card';
+    card.innerHTML=`
+      <div class="sev-name">${p.icon} ${p.name}</div>
+      <input class="sev-slider" type="range" min="1" max="5" value="${severities[pid]}" 
+        oninput="updateSev('${pid}',this.value,this.parentElement)">
+      <div>
+        <div class="sev-val" id="sv-${pid}">${severities[pid]}</div>
+        <div class="sev-label" id="sl-${pid}">${labels[severities[pid]]}</div>
+      </div>
+    `;
+    sec.appendChild(card);
+  });
+}
+
+function updateSev(pid, val, parent){
+  severities[pid] = parseInt(val);
+  const labels = ['','轻微','一般','明显','严重','非常严重'];
+  document.getElementById(`sv-${pid}`).textContent = val;
+  document.getElementById(`sl-${pid}`).textContent = labels[val];
+}
+
+function selectConfig(el, type){
+  const row = el.parentElement;
+  row.querySelectorAll('.config-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  config[type] = type === 'time' || type === 'duration' ? parseInt(el.dataset.val) : el.dataset.val;
+}
+
+// ===== GENERATE =====
+function generate(){
+  const loading = document.getElementById('loading');
+  loading.classList.add('show');
+  
+  const steps = document.querySelectorAll('.loading-step');
+  steps.forEach((s,i)=>{
+    setTimeout(()=>s.classList.add('show'), 600*(i+1));
+  });
+  
+  setTimeout(()=>{
+    loading.classList.remove('show');
+    document.getElementById('wizard').style.display='none';
+    buildResult();
+    document.getElementById('result').classList.add('show');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }, 3800);
+}
+
+function buildResult(){
+  // Sort problems by severity
+  const sorted = [...selectedProblems].sort((a,b)=>(severities[b]||3)-(severities[a]||3));
+  
+  // Summary
+  document.getElementById('resultSub').textContent = 
+    `基于你的 ${sorted.length} 个问题 · ${config.duration}周计划 · 每天${config.time}分钟`;
+  
+  const sumCard = document.getElementById('summaryCard');
+  const totalExercises = sorted.reduce((sum,pid)=>{
+    const exs = EXERCISES[pid];
+    return sum + (exs ? exs.length : 3);
+  },0);
+  
+  sumCard.innerHTML=`
+    <div class="summary-item">
+      <div class="si-value" style="color:var(--cyan)">${sorted.length}</div>
+      <div class="si-label">目标问题</div>
+    </div>
+    <div class="summary-item">
+      <div class="si-value" style="color:var(--green)">${totalExercises}</div>
+      <div class="si-label">训练动作</div>
+    </div>
+    <div class="summary-item">
+      <div class="si-value" style="color:var(--purple)">${config.duration}周</div>
+      <div class="si-label">训练周期</div>
+    </div>
+    <div class="summary-item">
+      <div class="si-value" style="color:var(--yellow)">${config.time}′/天</div>
+      <div class="si-label">每日时长</div>
+    </div>
+  `;
+  
+  // Week tabs
+  const tabsEl = document.getElementById('weekTabs');
+  const plansEl = document.getElementById('weekPlans');
+  tabsEl.innerHTML='';plansEl.innerHTML='';
+  
+  for(let w=1;w<=config.duration;w++){
+    const tab = document.createElement('button');
+    tab.className = `week-tab ${w===1?'active':''}`;
+    tab.textContent = `第 ${w} 周`;
+    tab.onclick = ()=>{
+      tabsEl.querySelectorAll('.week-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      plansEl.querySelectorAll('.day-plan').forEach(p=>p.classList.remove('active'));
+      document.getElementById(`week-${w}`).classList.add('active');
+    };
+    tabsEl.appendChild(tab);
+    
+    const weekPlan = document.createElement('div');
+    weekPlan.className = `day-plan ${w===1?'active':''}`;
+    weekPlan.id = `week-${w}`;
+    
+    // Build 7 days
+    const days = ['周一','周二','周三','周四','周五','周六','周日'];
+    const dayTypes = ['full','full','light','full','full','light','rest'];
+    
+    // Progression: earlier weeks focus on primary problem, later weeks mix in secondary
+    const weekFocus = w <= config.duration/2 ? sorted.slice(0,Math.min(2,sorted.length)) : sorted;
+    
+    days.forEach((day,di)=>{
+      const type = dayTypes[di];
+      
+      if(type === 'rest'){
+        weekPlan.innerHTML += `
+          <div class="day-card rest">
+            <div class="dc-header">
+              <div class="dc-badge rest">REST</div>
+              <div class="dc-title">${day} · 声带休息日</div>
+              <div class="dc-time">0分钟</div>
+            </div>
+            <div class="dc-steps">
+              <div class="dc-step">
+                <div class="dc-step-num">🧘</div>
+                <div class="dc-step-text"><strong>完全休息</strong> — 只做3分钟极轻哼鸣保持灵活性。多喝温水，充分睡眠，让声带完全恢复。</div>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      
+      const timeTarget = type === 'light' ? Math.floor(config.time*0.6) : config.time;
+      let html = '';
+      
+      // Warmup
+      html += `
+        <div class="day-card warmup">
+          <div class="dc-header">
+            <div class="dc-badge warmup">WARM UP</div>
+            <div class="dc-title">${day} · 热身</div>
+            <div class="dc-time">3分钟</div>
+          </div>
+          <div class="dc-steps">
+            <div class="dc-step"><div class="dc-step-num">1</div><div class="dc-step-text"><strong>气泡音</strong> — 最低最轻30秒，唤醒声带</div></div>
+            <div class="dc-step"><div class="dc-step-num">2</div><div class="dc-step-text"><strong>哼鸣滑音</strong> — "M"音从低到中滑2遍</div></div>
+            <div class="dc-step"><div class="dc-step-num">3</div><div class="dc-step-text"><strong>唇颤音</strong> — Lip Trill中音区音阶1遍</div></div>
+          </div>
+        </div>
+      `;
+      
+      // Core exercises - rotate through selected problems
+      const focusIdx = di % weekFocus.length;
+      const focusPid = weekFocus[focusIdx];
+      const focusProblem = PROBLEMS.find(x=>x.id===focusPid);
+      const exs = EXERCISES[focusPid] || [];
+      const coreExs = exs.filter(e=>e.type==='core');
+      const coreTime = timeTarget - 5; // minus warmup + cooldown
+      
+      if(coreExs.length > 0){
+        html += `
+          <div class="day-card core">
+            <div class="dc-header">
+              <div class="dc-badge core">CORE</div>
+              <div class="dc-title">${day} · ${focusProblem.icon} ${focusProblem.name}专项</div>
+              <div class="dc-time">${coreTime}分钟</div>
+            </div>
+            <div class="dc-steps">
+              ${coreExs.map((e,j)=>`
+                <div class="dc-step">
+                  <div class="dc-step-num">${j+1}</div>
+                  <div class="dc-step-text"><strong>${e.name}</strong> — ${e.desc}（${e.time}分钟${w>2?' × 强化版':''}）</div>
+                </div>
+              `).join('')}
+              ${type==='full' && weekFocus.length>1 ? `
+                <div class="dc-step">
+                  <div class="dc-step-num">+</div>
+                  <div class="dc-step-text"><strong>辅助训练</strong> — ${PROBLEMS.find(x=>x.id===weekFocus[(focusIdx+1)%weekFocus.length]).name}基础练习1组（交叉训练）</div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }
+      
+      // Cooldown
+      html += `
+        <div class="day-card cooldown">
+          <div class="dc-header">
+            <div class="dc-badge cooldown">COOL DOWN</div>
+            <div class="dc-title">${day} · 冷声</div>
+            <div class="dc-time">2分钟</div>
+          </div>
+          <div class="dc-steps">
+            <div class="dc-step"><div class="dc-step-num">1</div><div class="dc-step-text"><strong>轻柔哼鸣下行</strong> — 从中音缓缓滑到最低音</div></div>
+            <div class="dc-step"><div class="dc-step-num">2</div><div class="dc-step-text"><strong>静默+温水</strong> — 安静1分钟，喝几口温水</div></div>
+          </div>
+        </div>
+      `;
+      
+      weekPlan.innerHTML += html;
+    });
+    
+    plansEl.appendChild(weekPlan);
+  }
+}
+
+function restart(){
+  selectedProblems.clear();
+  severities = {};
+  config = {time:20,goal:'fix',duration:4};
+  currentStep = 0;
+  
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('result').style.display='none';
+  document.getElementById('wizard').style.display='block';
+  
+  document.querySelectorAll('.problem-opt').forEach(p=>{
+    p.classList.remove('selected');
+    p.querySelector('.po-check').textContent='';
+  });
+  document.getElementById('btn0next').disabled=true;
+  
+  goStep(0);
+  
+  setTimeout(()=>{
+    document.getElementById('result').style.display='';
+    window.scrollTo({top:0,behavior:'smooth'});
+  },100);
+}
+</script>
+
+</body>
+</html>
