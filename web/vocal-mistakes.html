@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>练声常见错误 — Vibesing 高音觉醒</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050509;--card:rgba(255,255,255,0.022);
+  --glass:rgba(255,255,255,0.035);--border:rgba(255,255,255,0.055);
+  --red:#ff3b5c;--green:#00ff88;--cyan:#00e5ff;--pink:#ff2d78;
+  --purple:#b44aff;--yellow:#ffd700;--orange:#ff8a3d;
+  --text:#e4e4f0;--dim:#5e5e74;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);overflow-x:hidden;
+}
+.aurora{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 30%,rgba(255,59,92,0.05),transparent),
+    radial-gradient(ellipse 60% 60% at 80% 70%,rgba(0,229,255,0.04),transparent),
+    radial-gradient(ellipse 70% 40% at 50% 50%,rgba(180,74,255,0.03),transparent);
+  animation:hue 16s ease-in-out infinite alternate;
+}
+@keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(12deg)}}
+
+.container{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 20px}
+
+/* HERO */
+.hero{padding:90px 0 40px;text-align:center}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 18px;border-radius:50px;font-size:0.72rem;
+  letter-spacing:2px;text-transform:uppercase;
+  border:1px solid rgba(255,59,92,0.2);color:var(--red);
+  background:rgba(255,59,92,0.06);margin-bottom:24px;
+}
+.hero h1{
+  font-size:clamp(2.2rem,5.5vw,4rem);font-weight:800;line-height:1.15;
+  margin-bottom:16px;
+  background:linear-gradient(135deg,#fff 15%,var(--red) 50%,var(--orange) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero p{max-width:640px;margin:0 auto;color:var(--dim);font-size:1.02rem;line-height:1.7}
+
+/* STATS */
+.stats-row{
+  display:flex;justify-content:center;gap:24px;flex-wrap:wrap;
+  padding:30px 0 50px;
+}
+.stat-pill{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 20px;border-radius:50px;
+  background:var(--glass);border:1px solid var(--border);
+}
+.stat-num{font-size:1.4rem;font-weight:900}
+.stat-num.red{color:var(--red)}
+.stat-num.yellow{color:var(--yellow)}
+.stat-num.green{color:var(--green)}
+.stat-text{font-size:0.75rem;color:var(--dim)}
+
+/* ERROR CARDS */
+.errors-list{display:flex;flex-direction:column;gap:24px;padding-bottom:80px}
+
+.error-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:24px;overflow:hidden;
+  transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+  position:relative;
+}
+.error-card:hover{
+  transform:translateY(-3px);border-color:rgba(255,255,255,0.1);
+  box-shadow:0 20px 60px rgba(0,0,0,0.35);
+}
+
+/* Card header */
+.ec-header{
+  display:flex;align-items:center;gap:16px;
+  padding:24px 28px;cursor:pointer;
+  transition:background 0.3s;
+}
+.ec-header:hover{background:rgba(255,255,255,0.015)}
+
+.ec-num{
+  width:48px;height:48px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;font-weight:900;flex-shrink:0;
+  position:relative;
+}
+.ec-num::after{
+  content:'';position:absolute;inset:0;border-radius:14px;
+  opacity:0.15;
+}
+.ec-num.critical{color:var(--red);background:rgba(255,59,92,0.08)}
+.ec-num.warning{color:var(--orange);background:rgba(255,138,61,0.08)}
+.ec-num.caution{color:var(--yellow);background:rgba(255,215,0,0.08)}
+
+.ec-titlebox{flex:1}
+.ec-title{font-size:1.1rem;font-weight:700;margin-bottom:2px}
+.ec-subtitle{font-size:0.75rem;color:var(--dim)}
+
+.ec-severity{
+  display:flex;flex-direction:column;align-items:flex-end;gap:4px;
+}
+.sev-badge{
+  padding:4px 12px;border-radius:20px;font-size:0.65rem;
+  font-weight:800;letter-spacing:0.5px;
+}
+.sev-badge.critical{background:rgba(255,59,92,0.1);color:var(--red);border:1px solid rgba(255,59,92,0.15)}
+.sev-badge.warning{background:rgba(255,138,61,0.1);color:var(--orange);border:1px solid rgba(255,138,61,0.15)}
+.sev-badge.caution{background:rgba(255,215,0,0.1);color:var(--yellow);border:1px solid rgba(255,215,0,0.15)}
+.sev-pct{font-size:0.68rem;color:var(--dim)}
+
+.ec-toggle{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.04);flex-shrink:0;
+  transition:all 0.3s;font-size:0.8rem;color:var(--dim);
+}
+.ec-toggle.open{transform:rotate(180deg);color:var(--cyan)}
+
+/* Card body (expandable) */
+.ec-body{
+  max-height:0;overflow:hidden;
+  transition:max-height 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.ec-body.open{max-height:1200px}
+
+.ec-content{
+  padding:0 28px 28px;
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;
+}
+
+/* Wrong side */
+.wrong-side,.right-side{
+  padding:20px;border-radius:16px;
+}
+.wrong-side{
+  background:rgba(255,59,92,0.03);border:1px solid rgba(255,59,92,0.08);
+}
+.right-side{
+  background:rgba(0,255,136,0.03);border:1px solid rgba(0,255,136,0.08);
+}
+
+.side-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:14px;
+}
+.side-icon{font-size:1.2rem}
+.side-label{
+  font-size:0.72rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+}
+.wrong-side .side-label{color:var(--red)}
+.right-side .side-label{color:var(--green)}
+
+.side-content{display:flex;flex-direction:column;gap:10px}
+
+.side-item{
+  display:flex;gap:10px;font-size:0.8rem;line-height:1.6;
+  padding:10px 12px;border-radius:10px;transition:background 0.3s;
+}
+.wrong-side .side-item{background:rgba(255,59,92,0.03)}
+.wrong-side .side-item:hover{background:rgba(255,59,92,0.06)}
+.right-side .side-item{background:rgba(0,255,136,0.03)}
+.right-side .side-item:hover{background:rgba(0,255,136,0.06)}
+.item-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
+.item-text{color:var(--dim)}
+.item-text strong{color:var(--text);font-weight:600}
+
+/* Consequence bar */
+.consequence{
+  grid-column:1/-1;
+  display:flex;align-items:center;gap:12px;
+  padding:14px 18px;border-radius:12px;
+  background:rgba(255,215,0,0.03);border:1px solid rgba(255,215,0,0.08);
+}
+.consequence-icon{font-size:1.3rem;flex-shrink:0}
+.consequence-text{font-size:0.78rem;color:var(--dim);line-height:1.5}
+.consequence-text strong{color:var(--yellow)}
+
+/* Vibesing detection */
+.detection{
+  grid-column:1/-1;
+  display:flex;align-items:center;gap:12px;
+  padding:14px 18px;border-radius:12px;
+  background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);
+}
+.detection-icon{font-size:1.3rem;flex-shrink:0}
+.detection-text{font-size:0.78rem;color:var(--dim);line-height:1.5}
+.detection-text strong{color:var(--cyan)}
+
+/* Responsive */
+@media(max-width:700px){
+  .ec-content{grid-template-columns:1fr}
+  .consequence,.detection{grid-column:1}
+  .stats-row{gap:10px}
+  .stat-pill{padding:8px 14px}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora"></div>
+
+<div class="container">
+
+  <section class="hero">
+    <div class="hero-tag">⚠️ Common Mistakes</div>
+    <h1>练声常见错误<br>避坑指南</h1>
+    <p>90%的声乐学习者正在犯这些错误。错误的练习不仅无效，还会加速声带损伤。<br>知道什么是"错的"，比知道什么是"对的"更重要。</p>
+  </section>
+
+  <div class="stats-row">
+    <div class="stat-pill">
+      <span class="stat-num red">15</span>
+      <span class="stat-text">常见致命错误</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-num yellow">90%</span>
+      <span class="stat-text">学习者中招率</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-num green">AI</span>
+      <span class="stat-text">Vibesing 实时监测</span>
+    </div>
+  </div>
+
+  <div class="errors-list" id="errorsList"></div>
+
+</div>
+
+<script>
+const MISTAKES = [
+  {
+    num:'01', severity:'critical', sevText:'致命', pct:'78%的初学者',
+    title:'用"喊"代替"唱"高音',
+    sub:'最常见、最危险的练声错误',
+    wrong:[
+      {icon:'🚫',text:'<strong>靠加大气息压力冲击高音</strong>，喉部肌肉全面紧缩，声带以3-5倍正常碰撞力猛烈碰撞'},
+      {icon:'🚫',text:'<strong>音量越大越好的错觉</strong>，误以为"唱得响=唱得好"，忽略音质和共鸣'},
+      {icon:'🚫',text:'<strong>面部和颈部肌肉代偿</strong>，咬牙切齿、青筋暴露、面红耳赤都是危险信号'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>混声技术</strong>：在换声区让TA/CT肌群协同，声带"变薄"而非"更用力"，Belting靠共鸣不靠蛮力'},
+      {icon:'✅',text:'<strong>从Piano开始</strong>：高音先用极轻声触达，确认通道通畅后再逐渐加量'},
+      {icon:'✅',text:'<strong>注意喉位</strong>：用手指监测喉结位置，高音时喉头不应明显上升'},
+    ],
+    consequence:'持续"喊"高音 → 声带水肿 → Reinke层反复微创伤 → <strong>声带结节/息肉</strong>（可能需手术），不可逆损伤',
+    detection:'Vibesing 检测 <strong>HNR < 12dB + Energy > -5dB</strong> 时自动触发"大白嗓"警告',
+  },
+  {
+    num:'02', severity:'critical', sevText:'致命', pct:'65%的初学者',
+    title:'练声时间过长不休息',
+    sub:'声带也是肌肉，需要恢复',
+    wrong:[
+      {icon:'🚫',text:'<strong>连续练声超过45分钟</strong>，声带胶原蛋白层温度升高、含水量下降，振动效率急剧降低'},
+      {icon:'🚫',text:'<strong>嗓子哑了还继续练</strong>，"突破极限"心态导致声带已经水肿仍强行振动'},
+      {icon:'🚫',text:'<strong>不做声带热身</strong>，冷启动直接唱高音，等于不热身就跑百米冲刺'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>20-20法则</strong>：练声20分钟 → 休息5分钟（完全静音或软哼）→ 继续20分钟'},
+      {icon:'✅',text:'<strong>热身必须</strong>：5分钟气泡音+哼鸣+低音区音阶，然后才进入目标练习'},
+      {icon:'✅',text:'<strong>当天总量 < 90分钟</strong>，出现任何不适立即停止，补充温水'},
+    ],
+    consequence:'过度练习 → 声带水肿 → 代偿性坏习惯（用力更大来补偿） → <strong>恶性循环 → 慢性声带炎</strong>',
+    detection:'Vibesing 追踪 <strong>练习时长 + HNR趋势</strong>，HNR逐渐下降时自动提示"该休息了"',
+  },
+  {
+    num:'03', severity:'critical', sevText:'致命', pct:'72%的学习者',
+    title:'不区分胸声和头声就练混声',
+    sub:'基础不牢=混声永远学不会',
+    wrong:[
+      {icon:'🚫',text:'<strong>不知道自己的换声点在哪</strong>，稀里糊涂地唱全音域，完全不知道什么时候该切换'},
+      {icon:'🚫',text:'<strong>纯胸声硬推到顶</strong>，从未体验过"轻机能头声"的存在'},
+      {icon:'🚫',text:'<strong>误把气声假声当头声</strong>，漏气的"虚声"不是头声，是声带闭合不全'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>先找到换声点</strong>：用"啊"从低到高滑，音色突变/破音的位置就是换声点（男约E4，女约E5）'},
+      {icon:'✅',text:'<strong>纯头声训练</strong>：用"呜(wu)"从换声点上方2-3度开始，练习纯头声的清晰闭合（不是气声）'},
+      {icon:'✅',text:'<strong>先分后合</strong>：胸声和头声各练2周以上，都稳定了再开始桥接训练'},
+    ],
+    consequence:'基础缺失 → 混声永远不稳 → <strong>练得越多问题越大</strong>，时间全浪费',
+    detection:'Vibesing 的 <strong>声区分析</strong> 自动标识换声点、胸声/头声段落，帮你先认清自己的声音',
+  },
+  {
+    num:'04', severity:'warning', sevText:'高危', pct:'58%的学习者',
+    title:'过度模仿歌手的音色',
+    sub:'模仿音色 ≠ 学习技术',
+    wrong:[
+      {icon:'🚫',text:'<strong>扭曲自己的声道形态</strong>去模仿偶像的音色，导致喉部、舌根、下巴不自然扭曲'},
+      {icon:'🚫',text:'<strong>强压喉位做"浑厚"音色</strong>，人为过度降低喉位导致声音闷暗、声带不自由'},
+      {icon:'🚫',text:'<strong>照搬细节忽略原理</strong>，模仿了"怎么唱"却不理解"为什么这样唱"'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>学习发声方法而非音色</strong>：分析歌手用了什么技术（混声/Belt/cry质感），而非直接模仿声音'},
+      {icon:'✅',text:'<strong>发展自己的音色</strong>：每个人的声道长度、声带长度不同，你的声音独一无二'},
+      {icon:'✅',text:'<strong>功能性训练优先</strong>：先让声带健康高效工作，音色自然会变好'},
+    ],
+    consequence:'过度模仿 → 肌肉紧张模式固化 → <strong>声音个性消失 + 声带代偿性损伤</strong>',
+    detection:'Vibesing 检测 <strong>Spectral Tilt 异常</strong> 时提示"声道形态不自然，可能在强行压喉位"',
+  },
+  {
+    num:'05', severity:'warning', sevText:'高危', pct:'60%的学习者',
+    title:'忽视气息支撑直接练发声',
+    sub:'没有地基就盖高楼',
+    wrong:[
+      {icon:'🚫',text:'<strong>完全没有腹式呼吸习惯</strong>，用胸式浅呼吸唱歌，肋骨一直在上下大幅运动'},
+      {icon:'🚫',text:'<strong>吸气量不足就急着发声</strong>，每次只用了肺活量的30-40%'},
+      {icon:'🚫',text:'<strong>不做呼气控制训练</strong>，气流像泄洪一样一下全出去，长音后段完全没气'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>每天5分钟独立呼吸训练</strong>：腹式呼吸+嘶音控制+断续呼气，把呼吸变成自动化'},
+      {icon:'✅',text:'<strong>积极吸气</strong>：唱歌前吸到70%容量（不是100%，太满反而僵硬），保持肋骨微扩张'},
+      {icon:'✅',text:'<strong>appoggio支撑</strong>：发声时保持"不让肚子瘪下去"的对抗感，这是意大利声乐的核心'},
+    ],
+    consequence:'气息不足 → 声带代偿（靠挤压弥补） → <strong>挤卡变成习惯</strong> → 声带损伤',
+    detection:'Vibesing 检测 <strong>Energy后段衰减 > 6dB</strong> 时提示"气息支撑不足，请加强呼吸训练"',
+  },
+  {
+    num:'06', severity:'warning', sevText:'高危', pct:'55%的学习者',
+    title:'嘴巴张不开 / 下巴紧锁',
+    sub:'共鸣空间的物理瓶颈',
+    wrong:[
+      {icon:'🚫',text:'<strong>嘴巴张开幅度 < 2指宽</strong>，口腔共鸣空间被严重压缩，元音清晰度下降'},
+      {icon:'🚫',text:'<strong>下巴前伸或后缩</strong>，颞下颌关节受力不均，连带舌骨上肌群代偿性紧张'},
+      {icon:'🚫',text:'<strong>高音时咬牙</strong>，咬合肌（咬肌+颞肌）过度收缩，直接限制口腔开合'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>镜子练习</strong>：唱高音时观察下巴是否自然下放（约3指宽），不是前突也不是后缩'},
+      {icon:'✅',text:'<strong>下巴放松操</strong>：双手托住下巴让它自然下垂，在这个位置发"啊"，感受零阻力'},
+      {icon:'✅',text:'<strong>分离控制</strong>：嘴巴的开合 ≠ 声带的工作，学会两者独立控制'},
+    ],
+    consequence:'下巴紧张 → 口腔共鸣受限 → 声音不够"开"→ <strong>用声带蛮力补偿 → 挤卡</strong>',
+    detection:'Vibesing 未来版本将通过 <strong>摄像头检测下巴开合角度</strong>，实时提示张嘴幅度',
+  },
+  {
+    num:'07', severity:'caution', sevText:'注意', pct:'50%的学习者',
+    title:'只练高音忽略中低音区',
+    sub:'高楼要从一楼开始盖',
+    wrong:[
+      {icon:'🚫',text:'<strong>一上来就冲最高音</strong>，完全跳过中音区的技术打磨'},
+      {icon:'🚫',text:'<strong>中低音区用大白嗓</strong>，觉得"低音不重要随便唱"，基础技术全是错的'},
+      {icon:'🚫',text:'<strong>只关注"能到多高"</strong>，忽略了音质、控制、持久性等更重要的维度'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>70%的练习应在舒适区</strong>：中音区是巩固正确肌肉模式的主场'},
+      {icon:'✅',text:'<strong>渐进式扩展</strong>：每周向上扩展不超过1个半音，确保新音与旧音音质一致'},
+      {icon:'✅',text:'<strong>下行练习为主</strong>：从高往低唱比从低往高更容易保持放松状态'},
+    ],
+    consequence:'只练高音 → 高音区肌肉过劳 → 中低音区技术退化 → <strong>全音域不平衡</strong>',
+    detection:'Vibesing 追踪 <strong>全音域得分分布</strong>，提示"你在C5以上练了80%的时间，请平衡音区"',
+  },
+  {
+    num:'08', severity:'caution', sevText:'注意', pct:'62%的学习者',
+    title:'舌根紧张后退',
+    sub:'隐藏的声道杀手',
+    wrong:[
+      {icon:'🚫',text:'<strong>舌根不自觉后缩</strong>，压迫会厌和咽壁，声道截面积缩小50%以上'},
+      {icon:'🚫',text:'<strong>唱"啊"时嗓子眼发紧</strong>，这就是舌根后退挤压咽腔的典型感觉'},
+      {icon:'🚫',text:'<strong>唱不同元音时舌头整体在动</strong>，没有实现舌尖和舌根的独立控制'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>吐舌练习</strong>：舌尖伸出牙齿外，保持这个位置发"啊"，强制舌根前移'},
+      {icon:'✅',text:'<strong>"Gee"和"Guh"交替</strong>：快速切换训练舌根的灵活性和独立性'},
+      {icon:'✅',text:'<strong>打哈欠感觉</strong>：打哈欠时舌根自然前低、软腭上提，在这个空间里发声'},
+    ],
+    consequence:'舌根紧张 → 咽腔压缩 → 共鸣差 + 声音闷 → <strong>声带代偿做更多工作 → 疲劳</strong>',
+    detection:'Vibesing 检测 <strong>F1/F2共振峰异常压缩</strong> 提示"可能存在舌根紧张，请检查口腔状态"',
+  },
+  {
+    num:'09', severity:'warning', sevText:'高危', pct:'45%的学习者',
+    title:'声带硬起始（Hard Attack）',
+    sub:'每个音开头都在"咳嗽"',
+    wrong:[
+      {icon:'🚫',text:'<strong>用声门爆发开始每个音</strong>，类似轻咳之后再发声。声门闭锁-爆破时碰撞力是正常的5倍'},
+      {icon:'🚫',text:'<strong>误以为"清晰起始=用力起始"</strong>，把"声音干净"和"声带猛撞"混为一谈'},
+      {icon:'🚫',text:'<strong>歌词的每个字都有"咔"的声门打击</strong>，连字技术完全缺失'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>Aspirate onset</strong>：轻微的"h"音引导发声起始，比如"哈"而非"啊"'},
+      {icon:'✅',text:'<strong>Coordinated onset</strong>：气流和声带同时启动（不是先闭再炸），这是最理想的起始'},
+      {icon:'✅',text:'<strong>Legato连字训练</strong>：用"Mah-May-Mee-Moh-Moo"练习元音间的平滑过渡'},
+    ],
+    consequence:'反复硬起始 → 声带前中部碰撞面反复受创 → <strong>声带结节发展速度加快3倍</strong>',
+    detection:'Vibesing 检测 <strong>Rise Time < 5ms + 起始瞬态尖峰</strong> → 标记"硬起始"',
+  },
+  {
+    num:'10', severity:'caution', sevText:'注意', pct:'70%的学习者',
+    title:'练声环境噪音太大',
+    sub:'你在跟噪音比赛音量',
+    wrong:[
+      {icon:'🚫',text:'<strong>在嘈杂环境中练声</strong>，不自觉地加大音量对抗背景噪音（Lombard效应）'},
+      {icon:'🚫',text:'<strong>戴一只耳机听伴奏</strong>，一只耳听不到自己的声音，又不自觉加大力度'},
+      {icon:'🚫',text:'<strong>在车里大声唱</strong>，发动机+路面噪音让你始终处于过度发声状态'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>安静环境</strong>：背景噪音 < 40dB（安静房间），这样你能准确听到自己的声音质量'},
+      {icon:'✅',text:'<strong>如果用耳机</strong>：双耳佩戴，监听自己的声音，或使用开放式耳机'},
+      {icon:'✅',text:'<strong>用Vibesing代替耳朵</strong>：AI不受环境噪音影响（V1.0+有噪声估计器），客观评判你的发声'},
+    ],
+    consequence:'对抗噪音 → 持续过度发声 → <strong>声带疲劳速度提升200%</strong>',
+    detection:'Vibesing V1.0 内置 <strong>环境噪声估计器</strong>，高噪音环境自动弹出"换个安静的地方练吧"',
+  },
+  {
+    num:'11', severity:'caution', sevText:'注意', pct:'48%的学习者',
+    title:'唱歌时含胸驼背',
+    sub:'呼吸系统的物理限制',
+    wrong:[
+      {icon:'🚫',text:'<strong>坐着弯腰唱歌</strong>，横膈膜下降空间被压缩60%，肺活量直接减半'},
+      {icon:'🚫',text:'<strong>低头看手机屏幕上的歌词</strong>，颈部前倾压迫喉部，声道角度变形'},
+      {icon:'🚫',text:'<strong>肩膀耸起紧张</strong>，辅助呼吸肌群代偿，肋间肌无法正常扩张'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>脊柱中立</strong>：想象头顶被绳子向上拉，肩膀自然下沉放松'},
+      {icon:'✅',text:'<strong>双脚与肩同宽</strong>：略弯膝盖，重心微向前。这是站姿唱歌的标准起点'},
+      {icon:'✅',text:'<strong>歌词放在与眼睛平齐的位置</strong>：不低头，保持声道通畅'},
+    ],
+    consequence:'不良体态 → 呼吸受限 → 气息不足 → <strong>声带代偿</strong> → 恶性循环',
+    detection:'Vibesing 未来版本将通过 <strong>加速度传感器</strong> 检测练声时的身体姿态',
+  },
+  {
+    num:'12', severity:'warning', sevText:'高危', pct:'40%的学习者',
+    title:'练声后不做冷却',
+    sub:'运动员不拉伸=声乐家不冷声',
+    wrong:[
+      {icon:'🚫',text:'<strong>高强度练声后突然停止</strong>，声带肌肉从高张力状态直接静止，等于跑步后不拉伸'},
+      {icon:'🚫',text:'<strong>练完高音后立刻说话</strong>，声带还处于歌唱状态，日常说话的模式会"撞车"'},
+      {icon:'🚫',text:'<strong>练完就喝冰水</strong>，热胀冷缩加速声带黏膜微创面的不良反应'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>5分钟冷却</strong>：用极轻的哼鸣从中音滑到低音区，让声带逐渐放松'},
+      {icon:'✅',text:'<strong>温水补充</strong>：练声前中后持续小口喝温水，保持声带黏液层最佳含水量'},
+      {icon:'✅',text:'<strong>练后静默5分钟</strong>：给声带肌群恢复时间，之后再正常说话'},
+    ],
+    consequence:'不冷却 → 声带肌肉恢复慢 → <strong>第二天声带状态差 → 练习效果打折扣</strong>',
+    detection:'Vibesing 练声结束时自动触发 <strong>"冷声指导"</strong>，引导你做5分钟下行哼鸣',
+  },
+  {
+    num:'13', severity:'caution', sevText:'注意', pct:'55%的学习者',
+    title:'只练自己最擅长的曲目',
+    sub:'舒适区是能力的天花板',
+    wrong:[
+      {icon:'🚫',text:'<strong>永远唱同一首拿手歌</strong>，重复已经会的技术，没有新的学习刺激'},
+      {icon:'🚫',text:'<strong>回避弱项</strong>，气息不好就不练长音，换声区不稳就不唱那个音域的歌'},
+      {icon:'🚫',text:'<strong>误把"熟练"当"进步"</strong>，同一首歌唱100遍不等于进步了100倍'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>70-20-10法则</strong>：70%练弱项（针对性技术训练）、20%练新歌（应用检验）、10%享受拿手歌（维持信心）'},
+      {icon:'✅',text:'<strong>让Vibesing帮你找弱项</strong>：五维雷达图一眼看出你的短板在哪'},
+      {icon:'✅',text:'<strong>每2周学一首新歌</strong>：选择能暴露当前弱项的曲目'},
+    ],
+    consequence:'只练擅长的 → 能力<strong>严重偏科</strong> → 音乐表现力受限 → 瓶颈期过长',
+    detection:'Vibesing 追踪 <strong>练习曲目多样性指数</strong>，过于单一时提示"试试新歌吧"',
+  },
+  {
+    num:'14', severity:'warning', sevText:'高危', pct:'35%的学习者',
+    title:'生病/嗓子不适时仍练声',
+    sub:'损伤期练声=雪上加霜',
+    wrong:[
+      {icon:'🚫',text:'<strong>感冒声带充血仍坚持练习</strong>，充血的声带更脆弱，碰撞更容易造成微出血'},
+      {icon:'🚫',text:'<strong>嗓子痛只吃含片然后继续</strong>，止痛不等于治愈，掩盖症状更危险'},
+      {icon:'🚫',text:'<strong>过敏季节不调整练习量</strong>，鼻后滴漏导致声带黏膜负担增加'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>嗓子不适 = 绝对休声</strong>：这几天做气息训练、听歌分析、阅读声乐理论'},
+      {icon:'✅',text:'<strong>感冒完全康复后再等2天</strong>：声带的恢复比感冒症状消退慢48小时'},
+      {icon:'✅',text:'<strong>建立声带健康日志</strong>：记录每天晨起嗓音状态，及时发现异常'},
+    ],
+    consequence:'带伤练习 → 声带微出血或水肿加重 → <strong>恢复期延长至原来的3-5倍</strong>',
+    detection:'Vibesing 每次练声前做 <strong>"声带状态快检"（3秒哼鸣）</strong>，检测HNR/Jitter异常时建议当天休息',
+  },
+  {
+    num:'15', severity:'caution', sevText:'注意', pct:'80%的学习者',
+    title:'不录音回听自己的声音',
+    sub:'你耳朵听到的和别人听到的不一样',
+    wrong:[
+      {icon:'🚫',text:'<strong>完全靠自我感觉判断</strong>，骨传导让你听到更多低频，自我听觉有严重偏差'},
+      {icon:'🚫',text:'<strong>只在KTV看分数</strong>，KTV评分基于音准和节奏，完全不评估音质和技术'},
+      {icon:'🚫',text:'<strong>录了音但不分析</strong>，录下来放一遍就完事，没有对比、没有标注、没有改进方向'},
+    ],
+    right:[
+      {icon:'✅',text:'<strong>每次练声都录音</strong>：哪怕只录关键段落。每周对比上周的录音听进步'},
+      {icon:'✅',text:'<strong>用频谱分析辅助</strong>：Vibesing的实时频谱比耳朵更客观更精准'},
+      {icon:'✅',text:'<strong>建立录音档案</strong>：按日期/歌曲/技术点分类，你的成长轨迹一目了然'},
+    ],
+    consequence:'不录音 → 自我认知偏差 → <strong>错误不被发现 → 坏习惯固化</strong>',
+    detection:'Vibesing <strong>自动录音+标注</strong>每个挤卡/破音/好声音片段，帮你精准回听和分析',
+  },
+];
+
+function renderAll(){
+  const list = document.getElementById('errorsList');
+  MISTAKES.forEach((m,i)=>{
+    const card = document.createElement('div');
+    card.className='error-card';
+    card.style.opacity='0';card.style.transform='translateY(16px)';
+
+    card.innerHTML=`
+      <div class="ec-header" onclick="toggleCard(this)">
+        <div class="ec-num ${m.severity}">${m.num}</div>
+        <div class="ec-titlebox">
+          <div class="ec-title">${m.title}</div>
+          <div class="ec-subtitle">${m.sub}</div>
+        </div>
+        <div class="ec-severity">
+          <div class="sev-badge ${m.severity}">${m.sevText}</div>
+          <div class="sev-pct">${m.pct}</div>
+        </div>
+        <div class="ec-toggle">▼</div>
+      </div>
+      <div class="ec-body">
+        <div class="ec-content">
+          <div class="wrong-side">
+            <div class="side-header">
+              <span class="side-icon">❌</span>
+              <span class="side-label">错误做法</span>
+            </div>
+            <div class="side-content">
+              ${m.wrong.map(w=>`<div class="side-item"><span class="item-icon">${w.icon}</span><span class="item-text">${w.text}</span></div>`).join('')}
+            </div>
+          </div>
+          <div class="right-side">
+            <div class="side-header">
+              <span class="side-icon">✅</span>
+              <span class="side-label">正确做法</span>
+            </div>
+            <div class="side-content">
+              ${m.right.map(r=>`<div class="side-item"><span class="item-icon">${r.icon}</span><span class="item-text">${r.text}</span></div>`).join('')}
+            </div>
+          </div>
+          <div class="consequence">
+            <div class="consequence-icon">⚠️</div>
+            <div class="consequence-text">${m.consequence}</div>
+          </div>
+          <div class="detection">
+            <div class="detection-icon">🤖</div>
+            <div class="detection-text">${m.detection}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    list.appendChild(card);
+
+    setTimeout(()=>{
+      card.style.transition='all 0.5s cubic-bezier(0.16,1,0.3,1)';
+      card.style.opacity='1';card.style.transform='translateY(0)';
+    },i*80);
+  });
+
+  // Auto-expand first card
+  setTimeout(()=>{
+    const first = list.querySelector('.ec-header');
+    if(first) toggleCard(first);
+  },500);
+}
+
+function toggleCard(header){
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.ec-toggle');
+  const isOpen = body.classList.contains('open');
+
+  // Close all
+  document.querySelectorAll('.ec-body.open').forEach(b=>{
+    b.classList.remove('open');
+    b.previousElementSibling.querySelector('.ec-toggle').classList.remove('open');
+  });
+
+  if(!isOpen){
+    body.classList.add('open');
+    toggle.classList.add('open');
+  }
+}
+
+renderAll();
+</script>
+
+</body>
+</html>
