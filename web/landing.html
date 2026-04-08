@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibesing 高音觉醒 — 让每个人都能唱高音</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#030306;--card:rgba(255,255,255,0.015);
+  --glass:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.05);
+  --cyan:#00e5ff;--pink:#ff2d78;--purple:#b44aff;
+  --green:#00ff88;--yellow:#ffd700;--orange:#ff8a3d;--red:#ff3b5c;
+  --text:#e8e8f4;--dim:#5a5a70;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+
+/* AURORA */
+.aurora{position:fixed;inset:0;z-index:0;pointer-events:none}
+.aurora::before{content:'';position:absolute;width:140%;height:140%;top:-20%;left:-20%;background:radial-gradient(ellipse 50% 40% at 30% 20%,rgba(180,74,255,0.08),transparent 70%),radial-gradient(ellipse 40% 50% at 75% 75%,rgba(0,229,255,0.06),transparent 70%),radial-gradient(ellipse 40% 30% at 50% 50%,rgba(255,45,120,0.04),transparent 70%);animation:auroraDrift 25s ease-in-out infinite alternate}
+@keyframes auroraDrift{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(-3%,2%) rotate(3deg)}100%{transform:translate(2%,-2%) rotate(-2deg)}}
+
+/* FLOATING PARTICLES */
+.particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.particle{position:absolute;border-radius:50%;animation:float linear infinite;opacity:0}
+@keyframes float{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+
+.page{position:relative;z-index:1}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 30px;display:flex;align-items:center;justify-content:space-between;transition:all 0.4s}
+.nav.scrolled{background:rgba(3,3,6,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:1.1rem;font-weight:800;letter-spacing:1px}
+.nav-logo span{background:linear-gradient(135deg,var(--purple),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-link{color:var(--dim);font-size:0.78rem;font-weight:600;text-decoration:none;transition:color 0.3s;cursor:pointer}
+.nav-link:hover{color:var(--text)}
+.nav-cta{padding:8px 22px;border-radius:50px;background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;font-size:0.78rem;font-weight:700;text-decoration:none;transition:all 0.3s;cursor:pointer;border:none}
+.nav-cta:hover{transform:scale(1.05);box-shadow:0 4px 20px rgba(180,74,255,0.3)}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;padding:0 40px;position:relative;overflow:hidden}
+.hero-content{max-width:650px;z-index:2}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:50px;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(0,255,136,0.2);color:var(--green);background:rgba(0,255,136,0.04);margin-bottom:24px;animation:fadeInUp 0.8s ease}
+.hero-badge .pulse{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero h1{font-size:clamp(2.4rem,6vw,4.5rem);font-weight:900;line-height:1.08;margin-bottom:20px;animation:fadeInUp 0.8s ease 0.1s both}
+.hero h1 .line1{display:block;background:linear-gradient(90deg,#fff 0%,rgba(255,255,255,0.9) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 .line2{display:block;background:linear-gradient(90deg,var(--purple),var(--pink),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% 100%;animation:gradientShift 4s ease infinite}
+@keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.hero-sub{font-size:1.1rem;color:var(--dim);line-height:1.8;margin-bottom:36px;max-width:520px;animation:fadeInUp 0.8s ease 0.2s both}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;animation:fadeInUp 0.8s ease 0.3s both}
+.btn-primary{padding:14px 36px;border-radius:60px;background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;font-size:0.9rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all 0.3s;border:none;cursor:pointer}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(180,74,255,0.35)}
+.btn-secondary{padding:14px 36px;border-radius:60px;border:1.5px solid var(--border);background:var(--glass);color:var(--text);font-size:0.9rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all 0.3s;cursor:pointer}
+.btn-secondary:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,0.04)}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* PHONE MOCKUP */
+.hero-phone{position:absolute;right:5%;top:50%;transform:translateY(-50%);width:340px;animation:phoneFloat 6s ease-in-out infinite}
+@keyframes phoneFloat{0%,100%{transform:translateY(-50%)}50%{transform:translateY(calc(-50% - 14px))}}
+.phone-frame{width:100%;aspect-ratio:9/19.5;border-radius:44px;background:linear-gradient(145deg,#1a1a2e,#0a0a16);border:2px solid rgba(255,255,255,0.06);overflow:hidden;position:relative;box-shadow:0 40px 80px rgba(0,0,0,0.5),0 0 40px rgba(180,74,255,0.05)}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#000;border-radius:0 0 20px 20px;z-index:10}
+.phone-screen{width:100%;height:100%;padding:40px 20px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(circle at 50% 30%,rgba(180,74,255,0.06),transparent 60%)}
+.phone-score{font-size:3.2rem;font-weight:900;background:linear-gradient(135deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.phone-label{font-size:0.7rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase}
+.phone-light{width:60px;height:60px;border-radius:50%;background:var(--green);box-shadow:0 0 30px rgba(0,255,136,0.4),0 0 60px rgba(0,255,136,0.15);animation:lightPulse 3s ease infinite}
+@keyframes lightPulse{0%,100%{box-shadow:0 0 30px rgba(0,255,136,0.4),0 0 60px rgba(0,255,136,0.15)}50%{box-shadow:0 0 40px rgba(0,255,136,0.6),0 0 80px rgba(0,255,136,0.25)}}
+.phone-bars{display:flex;gap:3px;align-items:flex-end;height:40px}
+.phone-bar{width:4px;border-radius:2px;background:var(--cyan);animation:barDance 1.2s ease infinite}
+@keyframes barDance{0%,100%{height:8px}50%{height:32px}}
+.phone-status{font-size:0.65rem;color:var(--green);font-weight:600}
+
+/* STATS BAR */
+.stats-bar{display:flex;justify-content:center;gap:clamp(20px,4vw,60px);padding:40px 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--card)}
+.stat{text-align:center}
+.stat-num{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;background:linear-gradient(135deg,var(--purple),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:0.7rem;color:var(--dim);margin-top:4px;letter-spacing:1px}
+
+/* SECTION */
+.section{padding:100px 40px;position:relative}
+.section-tag{display:flex;justify-content:center;margin-bottom:16px}
+.section-tag span{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:50px;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(180,74,255,0.15);color:var(--purple);background:rgba(180,74,255,0.04)}
+.section-title{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;text-align:center;line-height:1.2;margin-bottom:12px}
+.section-sub{text-align:center;color:var(--dim);font-size:0.9rem;max-width:600px;margin:0 auto 50px;line-height:1.7}
+
+/* PAIN POINTS */
+.pain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;max-width:1000px;margin:0 auto}
+.pain-card{padding:28px;border-radius:20px;background:var(--card);border:1px solid var(--border);position:relative;overflow:hidden;transition:all 0.4s}
+.pain-card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,0.1);box-shadow:0 16px 40px rgba(0,0,0,0.3)}
+.pain-card::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 50% 50%,var(--glow),transparent 70%);opacity:0;transition:opacity 0.4s}
+.pain-card:hover::before{opacity:1}
+.pain-emoji{font-size:2.2rem;margin-bottom:14px}
+.pain-title{font-size:1.05rem;font-weight:700;margin-bottom:8px;position:relative}
+.pain-desc{font-size:0.8rem;color:var(--dim);line-height:1.7;position:relative}
+
+/* HOW IT WORKS */
+.how-flow{display:flex;align-items:center;justify-content:center;gap:0;max-width:1000px;margin:0 auto;flex-wrap:wrap}
+.how-step{text-align:center;padding:30px 24px;flex:1;min-width:180px;position:relative}
+.how-num{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;margin:0 auto 16px;border:2px solid var(--border);background:var(--card);transition:all 0.4s}
+.how-step:hover .how-num{border-color:var(--cyan);box-shadow:0 0 25px rgba(0,229,255,0.15);transform:scale(1.1)}
+.how-title{font-size:0.9rem;font-weight:700;margin-bottom:6px}
+.how-desc{font-size:0.72rem;color:var(--dim);line-height:1.6}
+.how-arrow{font-size:1.2rem;color:var(--dim);flex-shrink:0;margin:0 -8px}
+
+/* FEATURES */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:1100px;margin:0 auto}
+.feature{padding:30px;border-radius:20px;background:var(--card);border:1px solid var(--border);transition:all 0.4s}
+.feature:hover{border-color:rgba(255,255,255,0.1);transform:translateY(-3px)}
+.f-icon{font-size:2rem;margin-bottom:14px}
+.f-title{font-size:1rem;font-weight:700;margin-bottom:8px}
+.f-desc{font-size:0.78rem;color:var(--dim);line-height:1.7}
+.f-highlight{margin-top:10px;padding:8px 12px;border-radius:8px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.06);font-size:0.68rem;color:var(--cyan)}
+
+/* COMPARISON */
+.compare-table{max-width:800px;margin:0 auto;border:1px solid var(--border);border-radius:20px;overflow:hidden}
+.compare-row{display:grid;grid-template-columns:1.5fr 1fr 1fr;padding:0;border-bottom:1px solid var(--border)}
+.compare-row:last-child{border-bottom:none}
+.compare-row.header{background:rgba(180,74,255,0.04)}
+.compare-cell{padding:16px 20px;font-size:0.8rem;display:flex;align-items:center}
+.compare-cell:not(:last-child){border-right:1px solid var(--border)}
+.compare-cell.label{font-weight:600;color:var(--dim)}
+.compare-cell.header{font-weight:800;font-size:0.7rem;letter-spacing:1px;text-transform:uppercase}
+.compare-cell.win{color:var(--green)}
+.compare-cell.lose{color:var(--dim);opacity:0.5}
+
+/* TESTIMONIALS */
+.testimonials{display:flex;gap:16px;max-width:1100px;margin:0 auto;overflow-x:auto;padding-bottom:20px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.testimonial{min-width:300px;padding:28px;border-radius:20px;background:var(--card);border:1px solid var(--border);flex-shrink:0}
+.t-stars{color:var(--yellow);font-size:0.8rem;margin-bottom:12px}
+.t-text{font-size:0.82rem;color:var(--dim);line-height:1.7;margin-bottom:16px;font-style:italic}
+.t-author{display:flex;align-items:center;gap:10px}
+.t-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;background:rgba(180,74,255,0.08)}
+.t-name{font-size:0.78rem;font-weight:700}
+.t-role{font-size:0.65rem;color:var(--dim)}
+
+/* CTA FINAL */
+.cta-final{text-align:center;padding:100px 40px;position:relative}
+.cta-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(180,74,255,0.08),transparent 60%);pointer-events:none}
+.cta-final h2{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;margin-bottom:16px;position:relative}
+.cta-final h2 span{background:linear-gradient(90deg,var(--purple),var(--pink),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% 100%;animation:gradientShift 3s ease infinite}
+.cta-final p{color:var(--dim);font-size:0.95rem;margin-bottom:36px;position:relative}
+.cta-buttons{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;position:relative}
+.btn-appstore{padding:14px 32px;border-radius:14px;background:#fff;color:#000;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:10px;transition:all 0.3s;text-decoration:none;cursor:pointer;border:none}
+.btn-appstore:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(255,255,255,0.1)}
+.btn-appstore .apple{font-size:1.4rem}
+
+/* FOOTER */
+.footer{padding:40px;border-top:1px solid var(--border);text-align:center}
+.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:16px;flex-wrap:wrap}
+.footer-link{color:var(--dim);font-size:0.72rem;text-decoration:none;transition:color 0.3s}
+.footer-link:hover{color:var(--text)}
+.footer-copy{font-size:0.65rem;color:rgba(255,255,255,0.15)}
+
+/* SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(30px);transition:all 0.7s cubic-bezier(0.16,1,0.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .hero{flex-direction:column;text-align:center;padding:120px 24px 60px}
+  .hero-content{max-width:100%}
+  .hero-sub{margin-left:auto;margin-right:auto}
+  .hero-actions{justify-content:center}
+  .hero-phone{position:relative;right:auto;top:auto;transform:none;margin:40px auto 0;width:260px;animation:none}
+  .nav-links{display:none}
+  .how-arrow{display:none}
+  .section{padding:60px 20px}
+}
+@media(max-width:500px){
+  .pain-grid,.features{grid-template-columns:1fr}
+  .compare-cell{padding:10px 12px;font-size:0.7rem}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora"></div>
+<div class="particles" id="particles"></div>
+
+<nav class="nav" id="nav">
+  <div class="nav-logo">🎤 <span>VIBESING</span></div>
+  <div class="nav-links">
+    <a class="nav-link" onclick="scrollTo2('#pain')">为什么需要</a>
+    <a class="nav-link" onclick="scrollTo2('#how')">工作原理</a>
+    <a class="nav-link" onclick="scrollTo2('#features')">核心功能</a>
+    <a class="nav-link" onclick="scrollTo2('#compare')">对比竞品</a>
+    <button class="nav-cta" onclick="scrollTo2('#download')">免费下载 →</button>
+  </div>
+</nav>
+
+<div class="page">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge"><span class="pulse"></span>AI 实时检测 · 完全免费</div>
+    <h1>
+      <span class="line1">你的高音，</span>
+      <span class="line2">只差一个觉醒。</span>
+    </h1>
+    <p class="hero-sub">全球首款端侧 AI 声乐教练。实时检测"挤卡"发声，0延迟反馈，全离线运行。不会唱高音？不是你没天赋，是你的声带在"刹车"。</p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="scrollTo2('#download')">🍎 App Store 下载</button>
+      <button class="btn-secondary" onclick="scrollTo2('#how')">▶ 了解原理</button>
+    </div>
+  </div>
+  <div class="hero-phone">
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="phone-label">VOCAL HEALTH SCORE</div>
+        <div class="phone-score" id="phoneScore">92</div>
+        <div class="phone-light" id="phoneLight"></div>
+        <div class="phone-bars">
+          <div class="phone-bar" style="animation-delay:0s"></div>
+          <div class="phone-bar" style="animation-delay:0.1s"></div>
+          <div class="phone-bar" style="animation-delay:0.2s"></div>
+          <div class="phone-bar" style="animation-delay:0.15s"></div>
+          <div class="phone-bar" style="animation-delay:0.25s"></div>
+          <div class="phone-bar" style="animation-delay:0.05s"></div>
+          <div class="phone-bar" style="animation-delay:0.18s"></div>
+          <div class="phone-bar" style="animation-delay:0.08s"></div>
+          <div class="phone-bar" style="animation-delay:0.22s"></div>
+        </div>
+        <div class="phone-status">✓ 发声健康 · 无挤卡</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar reveal">
+  <div class="stat"><div class="stat-num" data-count="35">0</div><div class="stat-label">ms 响应延迟</div></div>
+  <div class="stat"><div class="stat-num" data-count="100">0</div><div class="stat-label">% 离线运行</div></div>
+  <div class="stat"><div class="stat-num" data-count="16000">0</div><div class="stat-label">Hz 采样率</div></div>
+  <div class="stat"><div class="stat-num" data-count="7">0</div><div class="stat-label">维度诊断</div></div>
+</div>
+
+<!-- WHY / PAIN -->
+<section class="section" id="pain">
+  <div class="section-tag"><span>💢 痛点</span></div>
+  <div class="section-title reveal">你一定经历过这些。</div>
+  <div class="section-sub reveal">90% 的歌唱爱好者都在"不知道自己哪里不对"的深渊里挣扎。</div>
+  <div class="pain-grid">
+    <div class="pain-card reveal" style="--glow:rgba(255,45,120,0.03)">
+      <div class="pain-emoji">😤</div>
+      <div class="pain-title">高音一唱就"挤"</div>
+      <div class="pain-desc">明明很用力了，高音就是上不去。声音卡在喉咙里，脖子青筋暴起。你以为是没天分，其实是假声带在"帮倒忙"。</div>
+    </div>
+    <div class="pain-card reveal" style="--glow:rgba(180,74,255,0.03)">
+      <div class="pain-emoji">🤷</div>
+      <div class="pain-title">不知道自己哪里错</div>
+      <div class="pain-desc">听录音觉得不好听，但具体哪里不对说不上来。看了 100 个教学视频，每个说法都不一样。你需要的不是更多意见，而是客观数据。</div>
+    </div>
+    <div class="pain-card reveal" style="--glow:rgba(0,229,255,0.03)">
+      <div class="pain-emoji">💸</div>
+      <div class="pain-title">声乐课太贵</div>
+      <div class="pain-desc">一节课 300-800 元，老师只在上课时才能听你唱。回家练习没人告诉你对不对。Vibesing 就是你 24/7 在线的 AI 教练。</div>
+    </div>
+    <div class="pain-card reveal" style="--glow:rgba(0,255,136,0.03)">
+      <div class="pain-emoji">🔇</div>
+      <div class="pain-title">练着练着嗓子废了</div>
+      <div class="pain-desc">错误发声持续练习 = 声带结节/息肉的温床。没有实时反馈，你可能每天都在"练错"。Vibesing 在你伤害自己之前亮红灯。</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="section-tag"><span>⚙️ 原理</span></div>
+  <div class="section-title reveal">三步，从"不会唱"到"会唱"。</div>
+  <div class="section-sub reveal">Vibesing 用数字信号处理 + AI 模型实时分析你的声音。</div>
+  <div class="how-flow reveal">
+    <div class="how-step">
+      <div class="how-num">🎙️</div>
+      <div class="how-title">唱一句</div>
+      <div class="how-desc">对着手机唱。无需伴奏，<br>不用戴耳机。随便唱。</div>
+    </div>
+    <div class="how-arrow">→</div>
+    <div class="how-step">
+      <div class="how-num">🧠</div>
+      <div class="how-title">AI 分析</div>
+      <div class="how-desc">端侧 AI 每 16ms 分析一帧：<br>HNR/频谱/能量/基频，<br>延迟仅 35ms。</div>
+    </div>
+    <div class="how-arrow">→</div>
+    <div class="how-step">
+      <div class="how-num">🚦</div>
+      <div class="how-title">红绿灯反馈</div>
+      <div class="how-desc">绿灯=发声健康<br>红灯=检测到挤卡<br>立刻知道哪里不对。</div>
+    </div>
+    <div class="how-arrow">→</div>
+    <div class="how-step">
+      <div class="how-num">📈</div>
+      <div class="how-title">看见进步</div>
+      <div class="how-desc">分数量化你的发声质量。<br>每天练习，每天都能<br>看见变化。</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-tag"><span>✨ 特性</span></div>
+  <div class="section-title reveal">不止一个红绿灯。</div>
+  <div class="section-sub reveal">一整套声乐诊断 + 训练系统。</div>
+  <div class="features">
+    <div class="feature reveal">
+      <div class="f-icon">⚡</div>
+      <div class="f-title">35ms 极速响应</div>
+      <div class="f-desc">比你眨一次眼还快 10 倍。唱到挤卡的瞬间红灯就亮，你能立刻感知到"啊，刚才那个音不对"。</div>
+      <div class="f-highlight">端到端延迟 < 100ms · 每帧 16ms 处理</div>
+    </div>
+    <div class="feature reveal">
+      <div class="f-icon">📴</div>
+      <div class="f-title">100% 离线</div>
+      <div class="f-desc">不需要网络，不上传你的声音。在地铁里、在家里、在 KTV 包厢里，随时随地用。你的声音数据只属于你。</div>
+      <div class="f-highlight">端侧推理 · 零网络依赖 · 隐私至上</div>
+    </div>
+    <div class="feature reveal">
+      <div class="f-icon">🔬</div>
+      <div class="f-title">科学级分析</div>
+      <div class="f-desc">基于声学科学（HNR 谐噪比 + Mel 频谱 + F0 基频追踪），不是"AI 玄学"。每一个判断都有可追溯的物理依据。</div>
+      <div class="f-highlight">论文级算法 · 80 维梅尔频谱 · 自相关 HNR</div>
+    </div>
+    <div class="feature reveal">
+      <div class="f-icon">🎯</div>
+      <div class="f-title">7 维诊断（即将推出）</div>
+      <div class="f-desc">不止挤卡。漏气、大白嗓、喉位高、声区断裂……7 个维度全方位扫描你的发声状态。</div>
+      <div class="f-highlight">V1.0 路线图已确认 · 双流 AI 架构</div>
+    </div>
+    <div class="feature reveal">
+      <div class="f-icon">🏋️</div>
+      <div class="f-title">AI 训练计划</div>
+      <div class="f-desc">根据你的问题类型和严重程度，自动生成个性化的多周训练计划。热身→核心→放松，每天不重复。</div>
+      <div class="f-highlight">12 种问题类型 · 4 级难度 · 智能排期</div>
+    </div>
+    <div class="feature reveal">
+      <div class="f-icon">📊</div>
+      <div class="f-title">可量化进步</div>
+      <div class="f-desc">Vocal Health Score 从 0 到 100，每次练习都有分数。周报月报追踪你的成长曲线，告别"感觉进步了吧…大概？"</div>
+      <div class="f-highlight">日/周/月报 · EMA 平滑 · 趋势分析</div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="section" id="compare">
+  <div class="section-tag"><span>⚔️ 对比</span></div>
+  <div class="section-title reveal">和其他方案比一比。</div>
+  <div class="section-sub reveal">Vibesing 不是替代声乐老师，是填补你在课后 99% 的练习时间里的空白。</div>
+  <div class="compare-table reveal">
+    <div class="compare-row header">
+      <div class="compare-cell header" style="color:var(--dim)">功能</div>
+      <div class="compare-cell header" style="color:var(--purple)">🎤 Vibesing</div>
+      <div class="compare-cell header" style="color:var(--dim)">👤 传统声乐课</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell label">实时反馈</div>
+      <div class="compare-cell win">✅ 35ms 延迟</div>
+      <div class="compare-cell">⚠️ 仅上课时</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell label">价格</div>
+      <div class="compare-cell win">✅ 免费</div>
+      <div class="compare-cell lose">❌ ¥300-800/节</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell label">可用时间</div>
+      <div class="compare-cell win">✅ 24/7 随时</div>
+      <div class="compare-cell lose">❌ 预约制</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell label">客观量化</div>
+      <div class="compare-cell win">✅ HNR/频谱/分数</div>
+      <div class="compare-cell">⚠️ 主观经验</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell label">隐私</div>
+      <div class="compare-cell win">✅ 全离线/不上传</div>
+      <div class="compare-cell win">✅ 面对面</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell label">进阶指导</div>
+      <div class="compare-cell">⚠️ AI 建议</div>
+      <div class="compare-cell win">✅ 个性化教学</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell label">适合场景</div>
+      <div class="compare-cell">课后练习/自学</div>
+      <div class="compare-cell">系统学习/纠正</div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section">
+  <div class="section-tag"><span>💬 用户说</span></div>
+  <div class="section-title reveal">真人真事。</div>
+  <div class="section-sub reveal">来自 TestFlight 早期体验者的反馈。</div>
+  <div class="testimonials reveal">
+    <div class="testimonial">
+      <div class="t-stars">★★★★★</div>
+      <div class="t-text">"第一次知道自己唱高音时假声带在参与！红灯一亮我就松下来，绿灯了真的能感觉到声音通畅了。这比老师说100遍'放松'有用多了。"</div>
+      <div class="t-author"><div class="t-avatar">🧑‍🎤</div><div><div class="t-name">李明浩</div><div class="t-role">KTV 爱好者 · 练声 3 个月</div></div></div>
+    </div>
+    <div class="testimonial">
+      <div class="t-stars">★★★★★</div>
+      <div class="t-text">"作为声乐老师，我让学生课后用 Vibesing 练习。以前学生回去练一周全白练，现在至少有个客观反馈告诉他对不对。AI不能替代我，但能延伸我的手。"</div>
+      <div class="t-author"><div class="t-avatar">👩‍🏫</div><div><div class="t-name">王婷</div><div class="t-role">声乐教师 · 教龄 8 年</div></div></div>
+    </div>
+    <div class="testimonial">
+      <div class="t-stars">★★★★☆</div>
+      <div class="t-text">"离线运行太重要了！我在地铁上戴耳机小声练（别学我），它居然也能检测到。延迟完全感觉不到。期待混声检测功能上线！"</div>
+      <div class="t-author"><div class="t-avatar">🎧</div><div><div class="t-name">陈思远</div><div class="t-role">通勤练声选手 · 用户 2 周</div></div></div>
+    </div>
+    <div class="testimonial">
+      <div class="t-stars">★★★★★</div>
+      <div class="t-text">"之前唱歌唱到声带小结，花了大几千治疗。如果早有这个 App，在我刚开始错误发声时就警告我，就不会伤到声带了。强烈推荐给所有唱歌的人。"</div>
+      <div class="t-author"><div class="t-avatar">🏥</div><div><div class="t-name">张雪梅</div><div class="t-role">声带损伤康复者</div></div></div>
+    </div>
+    <div class="testimonial">
+      <div class="t-stars">★★★★★</div>
+      <div class="t-text">"我是个程序员，看了它的技术架构文档直接被圈粉了。80维梅尔频谱 + HNR 自相关 + 因果CNN——这是真科学不是忽悠。代码质量也很高。"</div>
+      <div class="t-author"><div class="t-avatar">👨‍💻</div><div><div class="t-name">刘强</div><div class="t-role">iOS 开发者 · 业余歌手</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-final" id="download">
+  <div class="cta-glow"></div>
+  <div class="section-tag" style="margin-bottom:20px"><span>🚀 开始</span></div>
+  <h2 class="reveal"><span>你的高音觉醒，从今天开始。</span></h2>
+  <p class="reveal">免费下载。不需要注册。不需要联网。打开就唱。</p>
+  <div class="cta-buttons reveal">
+    <button class="btn-appstore"><span class="apple">🍎</span> App Store 下载<br><span style="font-size:0.6rem;font-weight:400;opacity:0.5">iOS 17+ · iPhone 12+</span></button>
+    <button class="btn-secondary" onclick="scrollTo2('#features')">📖 了解更多功能</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-links">
+    <a class="footer-link" href="#">关于我们</a>
+    <a class="footer-link" href="#">隐私政策</a>
+    <a class="footer-link" href="#">技术文档</a>
+    <a class="footer-link" href="https://github.com/fengniudashen/Vibe_sing" target="_blank">GitHub</a>
+    <a class="footer-link" href="#">联系我们</a>
+  </div>
+  <div class="footer-copy">© 2025 Vibesing. All rights reserved. 让每个人都能唱高音。</div>
+</footer>
+
+</div>
+
+<script>
+// PARTICLES
+(function(){
+  const c=document.getElementById('particles');
+  const colors=['rgba(180,74,255,0.3)','rgba(0,229,255,0.3)','rgba(255,45,120,0.2)','rgba(0,255,136,0.2)'];
+  for(let i=0;i<30;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    const s=2+Math.random()*4;
+    p.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;background:${colors[i%4]};animation-duration:${8+Math.random()*15}s;animation-delay:${Math.random()*15}s`;
+    c.appendChild(p);
+  }
+})();
+
+// NAV SCROLL
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>50);
+});
+
+// SCROLL TO
+function scrollTo2(sel){
+  document.querySelector(sel)?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// SCROLL REVEAL
+const reveals=document.querySelectorAll('.reveal');
+const revealObs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target)}})
+},{threshold:0.15});
+reveals.forEach(el=>revealObs.observe(el));
+
+// COUNT UP STATS
+const statObs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(!e.isIntersecting) return;
+    const el=e.target;
+    const target=parseInt(el.dataset.count);
+    const duration=1500;
+    const start=performance.now();
+    function tick(now){
+      const p=Math.min((now-start)/duration,1);
+      const eased=1-Math.pow(1-p,3);
+      el.textContent=Math.round(eased*target).toLocaleString();
+      if(p<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    statObs.unobserve(el);
+  });
+},{threshold:0.5});
+document.querySelectorAll('.stat-num[data-count]').forEach(el=>statObs.observe(el));
+
+// PHONE SCORE ANIMATION
+(function(){
+  const scoreEl=document.getElementById('phoneScore');
+  const lightEl=document.getElementById('phoneLight');
+  const statusEl=document.querySelector('.phone-status');
+  let score=92,dir=-1;
+  setInterval(()=>{
+    score+=dir*(1+Math.random()*3|0);
+    if(score<40){dir=1;score=40}
+    if(score>98){dir=-1;score=98}
+    // Random squeeze event
+    if(Math.random()<0.08){score=25+Math.random()*15|0;dir=1}
+    scoreEl.textContent=Math.round(score);
+    const squeezed=score<50;
+    lightEl.style.background=squeezed?'var(--red)':'var(--green)';
+    lightEl.style.boxShadow=squeezed?'0 0 30px rgba(255,59,92,0.5),0 0 60px rgba(255,59,92,0.2)':'0 0 30px rgba(0,255,136,0.4),0 0 60px rgba(0,255,136,0.15)';
+    statusEl.textContent=squeezed?'⚠ 检测到挤卡 · 请放松':'✓ 发声健康 · 无挤卡';
+    statusEl.style.color=squeezed?'var(--red)':'var(--green)';
+  },800);
+})();
+</script>
+</body>
+</html>
