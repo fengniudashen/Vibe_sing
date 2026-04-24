@@ -1,12 +1,16 @@
 """
-Pipeline orchestrator — 串起 Layer 1 + Stage 1。
+Pipeline orchestrator — 串起 Layer 1 + Stage 1 + (可选) Stage 2 + Stage 3。
 用法：
-    python -m dataset_pipeline.run --video path/to/teach.mp4 --techniques 强混 弱混
+    # 只跑到 Stage 1（候选 JSON）
+    python -m dataset_pipeline.run --video teach.mp4
+    # 端到端（需设置 MINIMAX_API_KEY）
+    python -m dataset_pipeline.run --video teach.mp4 --end-to-end
 """
 from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 from pathlib import Path
 
 from .config import PipelineConfig
@@ -81,24 +85,49 @@ def run(video_path: Path, cfg: PipelineConfig) -> dict[str, Path]:
     return outputs
 
 
+def run_end_to_end(video_path: Path, cfg: PipelineConfig) -> None:
+    """Layer1 → Stage1 → Stage2 (LLM) → Stage3 (NVENC slice)."""
+    outputs = run(video_path, cfg)
+    if not outputs:
+        return
+
+    # Stage 2
+    from .llm_judge import MiniMaxClient, judge_technique_folder
+    client = MiniMaxClient()
+    for tech in outputs:
+        judge_technique_folder(cfg.paths.work_dir, tech, client)
+
+    # Stage 3
+    from .slicer import slice_technique
+    for tech in outputs:
+        slice_technique(video_path, cfg.paths.work_dir, tech, cfg.slicing)
+
+
 def main():
     p = argparse.ArgumentParser(
-        description="Vibesing dataset pipeline - Layer1 + Stage1. "
+        description="Vibesing dataset pipeline. "
                     "不传 --techniques 即自主发现模式。"
     )
     p.add_argument("--video", required=True, type=Path)
     p.add_argument(
         "--techniques", nargs="*", default=["auto"],
-        help="目标技巧列表。默认 'auto' = 自主发现（老师示范什么就建什么文件夹）。"
-             "也可手动指定：--techniques 强混 弱混 胸转假",
+        help="目标技巧列表。默认 'auto' = 自主发现（老师示范什么就建什么文件夹）。",
     )
     p.add_argument("--workdir", type=Path, default=Path("./pipeline_out"))
+    p.add_argument("--end-to-end", action="store_true",
+                   help="跑完 Stage1 后继续 LLM 裁决 + NVENC 切片。需设置 MINIMAX_API_KEY。")
     args = p.parse_args()
 
     cfg = PipelineConfig()
     cfg.target_techniques = args.techniques
     cfg.paths.work_dir = args.workdir
-    run(args.video, cfg)
+
+    if args.end_to_end:
+        if not os.getenv("MINIMAX_API_KEY"):
+            raise SystemExit("MINIMAX_API_KEY not set; cannot run --end-to-end")
+        run_end_to_end(args.video, cfg)
+    else:
+        run(args.video, cfg)
 
 
 if __name__ == "__main__":

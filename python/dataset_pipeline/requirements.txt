@@ -16,3 +16,9 @@ soundfile>=0.12.0
 parselmouth>=0.4.3         # 可选：更准的 HNR
 
 pydantic>=2.5.0            # Stage-2 LLM 输出校验
+
+# Stage 2: LLM 调用
+httpx>=0.27.0              # 异步 HTTP
+
+# 视频源采集
+# (httpx 复用)

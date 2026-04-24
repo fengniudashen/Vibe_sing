@@ -290,11 +290,46 @@ python -m dataset_pipeline.run \
 | 阶段 | 状态 | 内容 |
 |---|---|---|
 | **M1 — Layer 1 + Stage 1 + Prompt** | ✅ Done | 本文档对应代码 |
-| M2 — Stage 2 LLM 调用层 (`llm_judge.py`) | ⏳ Next | MiniMax 并发 + Pydantic 校验 |
-| M3 — Stage 3 NVENC 切片层 (`slicer.py`) | ⏳ Next | ffmpeg-python h264_nvenc |
-| M4 — 端到端集成 + 单元测试 | 📋 Plan | mock 视频走通全链路 |
-| M5 — Web 仪表盘 (人工 review 兜底) | 📋 Plan | 可视化候选 + ACCEPT/REJECT |
-| M6 — 多视频批跑 + 训练集导出 | 📋 Plan | manifest.csv，按 quality top-K 筛 |
+| **M2 — Stage 2 LLM 调用层** (`llm_judge.py`) | ✅ Done | MiniMax 异步 + Pydantic + 限速 + Fail-Fast |
+| **M3 — Stage 3 NVENC 切片层** (`slicer.py`) | ✅ Done | ffmpeg-python h264_nvenc 3s + metadata.jsonl |
+| **M4 — 视频源采集** (`sources/bilibili_scraper.py`) | ✅ Done | 矩阵切片突破 1000 条上限 + UP 主纵深 |
+| M5 — 端到端集成测试 | 📋 Plan | mock 视频走通全链路 |
+| M6 — Web 仪表盘 (人工 review 兜底) | 📋 Plan | 可视化候选 + ACCEPT/REJECT |
+| M7 — 多视频批跑 + 训练集导出 | 📋 Plan | manifest.csv，按 quality top-K 筛 |
+
+---
+
+## 11. 视频源采集：突破 B 站 1000 条上限
+
+B 站 `search/type` API 每个 query 硬性上限 = 50 页 × 20 条 = **1000 条**。
+解决方案：**多维矩阵切片**，每个切片独立享受 1000 条配额。
+
+| 维度 | 取值 | 倍数 |
+|---|---|---|
+| **时间窗** | `pubtime_begin_s` / `pubtime_end_s`，按 N 月切 | × ~30 (10 年 ÷ 4 月) |
+| **时长档** | `duration` ∈ {1: ≤10min, 2: 10-30, 3: 30-60, 4: >60} | × 4 |
+| **排序** | `order` ∈ {totalrank, click, pubdate, dm, stow, scores} | × 6 |
+| **同义词** | 强混 / 强混声 / belting / belt / 金属感 / ... | × 5-10 |
+| **UP主纵深** | 找到优质老师 → 直拉 space (无上限) | 爆炸式 |
+
+**实测**：单关键词 `强混` + 5 个同义词 + 默认 3 月窗 + 3 排序 + 4 时长 = **300+ 子查询**，理论 30 万条配额，去重后实际约 **3-8 万** 视频。
+
+```bash
+# 例：扫"强混"全网 8 年
+python -m dataset_pipeline.sources.bilibili_scraper \
+  --keyword 强混 \
+  --synonyms 强混声 belting "belt mix" 金属感 \
+  --start-year 2018 --end-year 2025 \
+  --window-months 3 \
+  --cookie "SESSDATA=xxx; buvid3=yyy" \
+  --out data/bilibili/强混.jsonl
+```
+
+> Cookie 必填：浏览器 F12 → Application → Cookies → bilibili.com → 复制 `SESSDATA` 和 `buvid3`。未登录会被严格限流。
+
+### YouTube 源（M5 阶段补）
+- 用 `yt-dlp` 关键词搜索（无配额限制，但要带 cookies 防风控）
+- 类似切片：`scsearch:strong mix vocal lesson` × N 关键词 × N 时长 filter
 
 ---
 
