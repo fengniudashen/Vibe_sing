@@ -1,0 +1,18 @@
+# Dataset pipeline 专用依赖 (在 ../requirements.txt 之上追加)
+# CUDA 12.x + RTX 5060 (8GB)
+
+ffmpeg-python>=0.2.0
+opencv-python>=4.9.0
+easyocr>=1.7.1
+rapidfuzz>=3.6.0
+scenedetect>=0.6.3
+
+faster-whisper>=1.0.0      # ctranslate2 后端，支持 CUDA float16
+# silero-vad 通过 torch.hub 加载，无需 pip
+torch>=2.1.0               # 安装时记得带 CUDA wheel
+
+librosa>=0.10.0
+soundfile>=0.12.0
+parselmouth>=0.4.3         # 可选：更准的 HNR
+
+pydantic>=2.5.0            # Stage-2 LLM 输出校验
