@@ -269,12 +269,19 @@ pipeline_out/
 # 安装依赖（在 ../requirements.txt 之上）
 pip install -r python/dataset_pipeline/requirements.txt
 
-# 跑流水线（多技巧并行处理同一视频）
+# 模式 A：自主发现（推荐）——老师示范什么，就建什么文件夹
 python -m dataset_pipeline.run \
     --video data/teach_001.mp4 \
-    --techniques 强混 弱混 咽音 \
+    --workdir pipeline_out/teach_001
+
+# 模式 B：手动指定目标技巧（只建指定的文件夹）
+python -m dataset_pipeline.run \
+    --video data/teach_001.mp4 \
+    --techniques 强混 弱混 胸转假 \
     --workdir pipeline_out/teach_001
 ```
+
+**自主发现模式**扫描所有 OCR + ASR 命中的技巧关键词（`TECHNIQUE_KEYWORDS` ∪ `TRANSITION_KEYWORDS`），取并集作为 `target_techniques`。视频里老师示范了什么就自动建什么子目录，不需要预先声明。
 
 ---
 

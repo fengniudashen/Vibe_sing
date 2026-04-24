@@ -23,6 +23,12 @@ logging.basicConfig(
 log = logging.getLogger("pipeline")
 
 
+def _auto_discover_techniques(ocr_hits, asr_hits) -> list[str]:
+    """自主发现模式：扫 OCR + ASR 所有命中的技巧，全部作为 target。"""
+    found = {h.technique for h in ocr_hits} | {h.technique for h in asr_hits}
+    return sorted(found)
+
+
 def run(video_path: Path, cfg: PipelineConfig) -> dict[str, Path]:
     """跑完整 Layer 1 + Stage 1。返回 {technique: candidates_jsonl_path}."""
     check_ffmpeg()
@@ -39,9 +45,18 @@ def run(video_path: Path, cfg: PipelineConfig) -> dict[str, Path]:
     vad_blocks = run_vad(audio, cfg.vad, cfg.paths.vad_json, cfg.transition)
     apply_acoustic_gate(vad_blocks, cfg.gate)
 
+    # ---- 自主发现模式：老师示范什么，就建什么文件夹 ----
+    techs = cfg.target_techniques
+    if not techs or techs == ["auto"]:
+        techs = _auto_discover_techniques(ocr_hits, asr_hits)
+        log.info("🔍 auto-discover mode: found techniques = %s", techs)
+        if not techs:
+            log.warning("No technique mentioned anywhere in video; nothing to do.")
+            return {}
+
     # ---- Stage 1: 按技巧分别构造候选 + 落到独立子目录 ----
     outputs: dict[str, Path] = {}
-    for tech in cfg.target_techniques:
+    for tech in techs:
         tech_dir = cfg.paths.technique_dir(tech)
         tech_dir.mkdir(parents=True, exist_ok=True)
         cfg.paths.slices_dir(tech).mkdir(parents=True, exist_ok=True)
@@ -67,9 +82,16 @@ def run(video_path: Path, cfg: PipelineConfig) -> dict[str, Path]:
 
 
 def main():
-    p = argparse.ArgumentParser()
+    p = argparse.ArgumentParser(
+        description="Vibesing dataset pipeline - Layer1 + Stage1. "
+                    "不传 --techniques 即自主发现模式。"
+    )
     p.add_argument("--video", required=True, type=Path)
-    p.add_argument("--techniques", nargs="+", default=["强混"])
+    p.add_argument(
+        "--techniques", nargs="*", default=["auto"],
+        help="目标技巧列表。默认 'auto' = 自主发现（老师示范什么就建什么文件夹）。"
+             "也可手动指定：--techniques 强混 弱混 胸转假",
+    )
     p.add_argument("--workdir", type=Path, default=Path("./pipeline_out"))
     args = p.parse_args()
 
