@@ -13,7 +13,7 @@ import librosa
 import soundfile as sf
 
 from .config import (
-    AUDIO_SAMPLE_RATE, VADCfg, AcousticGate, sec_to_tick,
+    AUDIO_SAMPLE_RATE, VADCfg, AcousticGate, TransitionCfg, sec_to_tick,
 )
 from .schemas import VADBlock
 
@@ -23,7 +23,8 @@ log = logging.getLogger(__name__)
 # =========================================================
 # Silero VAD
 # =========================================================
-def run_vad(audio_wav: Path, cfg: VADCfg, out_json: Path) -> List[VADBlock]:
+def run_vad(audio_wav: Path, cfg: VADCfg, out_json: Path,
+            transition_cfg: TransitionCfg | None = None) -> List[VADBlock]:
     if out_json.exists():
         log.info("vad cache hit: %s", out_json)
         return [VADBlock(**d) for d in json.loads(out_json.read_text("utf-8"))]
@@ -56,8 +57,10 @@ def run_vad(audio_wav: Path, cfg: VADCfg, out_json: Path) -> List[VADBlock]:
 
     # 提取声学特征 (一次性 load 完整 wav)
     audio, sr = librosa.load(str(audio_wav), sr=AUDIO_SAMPLE_RATE, mono=True)
+    tcfg = transition_cfg or TransitionCfg()
     for b in blocks:
         _enrich_acoustic(b, audio, sr)
+        _detect_transitions(b, audio, sr, tcfg)
 
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(
@@ -148,3 +151,73 @@ def apply_acoustic_gate(blocks: List[VADBlock], gate: AcousticGate) -> None:
             0.40 * hnr_norm + 0.30 * b.pitch_stability
             + 0.20 * dur_score + 0.10 * rms_norm
         )
+
+
+# =========================================================
+# 转声点 (passaggio) 检测
+# =========================================================
+def _detect_transitions(b: VADBlock, audio: np.ndarray, sr: int,
+                        cfg: TransitionCfg) -> None:
+    """在 VAD block 内寻找显著 f0 跳变（≥ N 半音），标记为 transition。
+    判定条件：
+      1. 跳变前后各 ≥ min_stable_*_ticks 帧的 f0 都已 voiced
+      2. 半音差 = |12 * log2(f0_after / f0_before)| ≥ min_semitone_jump
+      3. 跳变本身在 window_ticks 内完成（避免缓慢颤音被误判）
+    """
+    s = int(b.start_tick * sr * 0.1)
+    e = int(b.end_tick * sr * 0.1)
+    seg = audio[s:e]
+    dur_ticks = b.end_tick - b.start_tick
+    if seg.size < sr // 2 or dur_ticks < (cfg.min_stable_before_ticks
+                                          + cfg.min_stable_after_ticks
+                                          + cfg.window_ticks):
+        return
+
+    # f0 帧率：hop = 100ms = 1 tick (与 Tick 对齐)
+    hop = sr // 10
+    try:
+        f0, voiced, _ = librosa.pyin(
+            seg, fmin=65.0, fmax=1100.0, sr=sr,
+            frame_length=2048, hop_length=hop,
+        )
+    except Exception as exc:
+        log.debug("pyin transition fail: %s", exc)
+        return
+
+    if f0 is None or len(f0) == 0:
+        return
+
+    # 滑窗：对每个候选中点 i，比较 [i-W..i] 与 [i..i+W] 的中位 f0
+    W = cfg.window_ticks
+    pre = cfg.min_stable_before_ticks
+    post = cfg.min_stable_after_ticks
+    n = len(f0)
+    last_marked = -999
+
+    for i in range(pre + W, n - post - W):
+        before_window = f0[i - pre - W: i - W]
+        after_window = f0[i + W: i + W + post]
+        bv = before_window[~np.isnan(before_window)]
+        av = after_window[~np.isnan(after_window)]
+        if bv.size < pre // 2 or av.size < post // 2:
+            continue
+        f_before = float(np.median(bv))
+        f_after = float(np.median(av))
+        if f_before <= 0 or f_after <= 0:
+            continue
+        semitones = abs(12.0 * np.log2(f_after / f_before))
+        if semitones < cfg.min_semitone_jump:
+            continue
+
+        tick_global = b.start_tick + i  # i 已是 tick 索引
+        # 同一区域 1 秒内只标记一次
+        if tick_global - last_marked < 10:
+            continue
+        last_marked = tick_global
+        b.transitions.append({
+            "tick": int(tick_global),
+            "semitone_jump": round(float(semitones), 2),
+            "direction": "up" if f_after > f_before else "down",
+            "f0_before_hz": round(f_before, 1),
+            "f0_after_hz": round(f_after, 1),
+        })

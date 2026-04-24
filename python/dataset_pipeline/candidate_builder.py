@@ -8,7 +8,7 @@ from typing import List, Iterable
 import logging
 import uuid
 
-from .config import CandidateCfg
+from .config import CandidateCfg, TRANSITION_KEYWORDS
 from .schemas import OCRHit, ASRHit, ASRWord, VADBlock, CandidateEvent
 
 log = logging.getLogger(__name__)
@@ -29,6 +29,10 @@ def _iou(a: tuple, b: tuple) -> float:
     return inter / union if union > 0 else 0.0
 
 
+def _is_transition_technique(tech: str) -> bool:
+    return tech in TRANSITION_KEYWORDS
+
+
 def build_candidates(
     ocr_hits: List[OCRHit],
     asr_hits: List[ASRHit],
@@ -44,7 +48,7 @@ def build_candidates(
     for hit in ocr_hits:
         if hit.technique not in target_set:
             continue
-        c = _make_candidate_from_anchor(
+        cs = _make_candidates_from_anchor(
             anchor_tick=hit.time_tick,
             tech=hit.technique,
             cfg=cfg,
@@ -52,14 +56,13 @@ def build_candidates(
             vad_blocks=vad_blocks,
             ocr=hit, asr=None, source="ocr",
         )
-        if c is not None:
-            candidates.append(c)
+        candidates.extend(cs)
 
     # ---- 2. ASR 触发 ----
     for hit in asr_hits:
         if hit.technique not in target_set:
             continue
-        c = _make_candidate_from_anchor(
+        cs = _make_candidates_from_anchor(
             anchor_tick=hit.time_tick,
             tech=hit.technique,
             cfg=cfg,
@@ -67,8 +70,7 @@ def build_candidates(
             vad_blocks=vad_blocks,
             ocr=None, asr=hit, source="asr",
         )
-        if c is not None:
-            candidates.append(c)
+        candidates.extend(cs)
 
     # ---- 3. IoU 去重 (按 technique 分桶) ----
     deduped: List[CandidateEvent] = []
@@ -99,28 +101,55 @@ def build_candidates(
     return deduped
 
 
-def _make_candidate_from_anchor(
+def _make_candidates_from_anchor(
     anchor_tick: int, tech: str, cfg: CandidateCfg,
     asr_words: List[ASRWord], vad_blocks: List[VADBlock],
     ocr, asr, source: str,
-):
+) -> List[CandidateEvent]:
+    """从一个触发点生成候选：
+      - 普通技巧 → 1 个 steady_demo 候选
+      - 转声技巧 → N 个 transition_demo 候选（每个 passaggio 一个）
+    """
     win_a = anchor_tick - cfg.lookback_ticks
     win_b = anchor_tick + cfg.lookahead_ticks
 
     sub_words = _slice_words_in(asr_words, win_a, win_b)
     sub_vads = _slice_vad_in(vad_blocks, win_a, win_b)
 
-    # 必须至少有 1 个 valid demo VAD block
     valid = [b for b in sub_vads if b.is_valid_demo
              and (b.end_tick - b.start_tick) >= cfg.min_demo_duration_ticks]
     if len(valid) < cfg.min_vad_blocks:
-        return None
+        return []
 
+    # ----- 转声示范 -----
+    if _is_transition_technique(tech):
+        results: List[CandidateEvent] = []
+        for vb in valid:
+            for tr in vb.transitions:
+                results.append(CandidateEvent(
+                    candidate_id=str(uuid.uuid4())[:8],
+                    target_technique=tech,
+                    trigger_source=source,
+                    candidate_type="transition_demo",
+                    transition_anchor_tick=int(tr["tick"]),
+                    transition_tolerance_ticks=5,
+                    ocr_trigger=ocr,
+                    asr_trigger=asr,
+                    subsequent_speech=sub_words,
+                    subsequent_vad_blocks=sub_vads,
+                    local_quality_hint=vb.quality_score,
+                    window_start_tick=win_a,
+                    window_end_tick=win_b,
+                ))
+        return results
+
+    # ----- 稳态示范 -----
     quality_hint = max((b.quality_score for b in valid), default=0.0)
-    return CandidateEvent(
+    return [CandidateEvent(
         candidate_id=str(uuid.uuid4())[:8],
         target_technique=tech,
         trigger_source=source,
+        candidate_type="steady_demo",
         ocr_trigger=ocr,
         asr_trigger=asr,
         subsequent_speech=sub_words,
@@ -128,4 +157,4 @@ def _make_candidate_from_anchor(
         local_quality_hint=quality_hint,
         window_start_tick=win_a,
         window_end_tick=win_b,
-    )
+    )]

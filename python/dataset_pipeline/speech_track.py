@@ -7,7 +7,7 @@ from typing import List
 import json
 import logging
 
-from .config import WhisperCfg, TECHNIQUE_KEYWORDS, ASR_DEMO_TRIGGERS, sec_to_tick
+from .config import WhisperCfg, TECHNIQUE_KEYWORDS, TRANSITION_KEYWORDS, ASR_DEMO_TRIGGERS, sec_to_tick
 from .schemas import ASRWord, ASRHit
 
 log = logging.getLogger(__name__)
@@ -63,12 +63,13 @@ def find_asr_triggers(words: List[ASRWord], window_ticks: int = 30) -> List[ASRH
     for i, w in enumerate(words):
         if not any(t in w.text for t in ASR_DEMO_TRIGGERS):
             continue
-        # 在 i 之后 window_ticks 内寻找技巧词
+        # 在 i 之后 window_ticks 内寻找技巧词 (含转声词)
         anchor_tick = w.start_tick
+        all_kw_groups = list(TECHNIQUE_KEYWORDS.items()) + list(TRANSITION_KEYWORDS.items())
         for j in range(i + 1, len(words)):
             if words[j].start_tick - anchor_tick > window_ticks:
                 break
-            for tech, kws in TECHNIQUE_KEYWORDS.items():
+            for tech, kws in all_kw_groups:
                 for kw in kws:
                     if kw in words[j].text:
                         hits.append(ASRHit(

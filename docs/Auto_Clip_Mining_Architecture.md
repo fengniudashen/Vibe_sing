@@ -9,7 +9,7 @@
 | 维度 | 说明 |
 |---|---|
 | 输入 | 任意时长的 mp4/mkv 视频（可含画面、字幕、教师讲解、示范片段） |
-| 输出 | 按技巧分类的 4 秒 mp4 + 16kHz mono WAV 切片，附 metadata |
+| 输出 | 按技巧分类的 **3 秒** mp4 + 16kHz mono WAV 切片，附 metadata |
 | 准确率目标 | 误召率 < 1%（训练集容不下噪声样本） |
 | 召回率目标 | ≥ 60%（漏召可以靠扩大视频源补） |
 | 硬件 | 本地 RTX 5060 8GB；云端只有大文本 LLM（无 VLM 额度） |
@@ -58,7 +58,7 @@
                            ▼
 ┌──────────────────────── 本地 RTX 5060 ────────────────────────────┐
 │   Stage 3: ffmpeg + h264_nvenc 极速切片                            │
-│     • 中心点 ± 2.0s → 4s mp4 (NVENC) + 16kHz mono wav              │
+│     • 中心点 ± 1.5s → 3s mp4 (NVENC) + 16kHz mono wav              │
 │     • 命名：<technique>_<video_id>_<idx>.{mp4,wav}                 │
 │     • metadata.jsonl：时间戳、quality_score、verdict                │
 └────────────────────────────────────────────────────────────────────┘
@@ -116,6 +116,45 @@ quality_score = 0.40 * HNR_norm
               + 0.10 * RMS_norm
 ```
 训练时按 `(technique, quality_score)` 排序，每个技巧取 top-K 即得"极品示范集"。
+
+### 3.7 转声示范处理（passaggio detection）
+
+**问题**：老师做"胸声 → 假声"示范时，3 秒窗口若以稳定假声段为中心，会**完整漏掉胸声段**和**最有价值的换声瞬间**。
+
+**解决方案**——三步走：
+
+#### Step A：声学层自动检测转声点
+对每个 VAD block 内做滑窗 f0 比较：
+```
+对每帧 i：
+  before_median_f0 = median(f0[i-W-pre : i-W])  # 前 0.5s 中位数
+  after_median_f0  = median(f0[i+W   : i+W+post]) # 后 0.5s 中位数
+  semitones = |12 * log2(after / before)|
+  if semitones >= 5 半音: → 标记为 transition (passaggio)
+```
+每个 transition 记录：`{tick, semitone_jump, direction: "up"|"down", f0_before, f0_after}`
+
+#### Step B：识别转声示范类型
+当 OCR/ASR 命中 `TRANSITION_KEYWORDS`（"胸转假"、"换声"、"passaggio" 等），生成 **`transition_demo`** 类型候选，**每个 passaggio 一个候选**。其 `must_pick_center_within` = `[transition_tick - 5, transition_tick + 5]`（即 ±0.5s 紧带）。
+
+#### Step C：LLM 强约束 + 3s 切片对齐
+LLM 必须从 `transitions[]` 中选一个 tick 作为 `chosen_center_tick`，本地切片器以此为中心 ±1.5s：
+
+```
+   |←—— 1.5s ——→|←—— 1.5s ——→|
+   ─────胸声─────●─────假声─────
+                ↑
+          passaggio (chosen_center)
+```
+3 秒窗口同时包含**转前稳定段、换声瞬间、转后稳定段**——这正是训练"模式切换检测"模型最需要的样本。
+
+#### 转声技巧词表（`config.TRANSITION_KEYWORDS`）
+| 技巧名 | 关键词 |
+|---|---|
+| 胸转假 | 胸声转假声、胸转假、由胸到头、chest to falsetto |
+| 头转胸 | 头声转胸声、头转胸、falsetto to chest |
+| 转混 | 转混声、换声、换声点、passaggio、break、flip |
+| 强转弱 | 强混转弱混、belt to mix |
 
 ---
 

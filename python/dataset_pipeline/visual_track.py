@@ -15,7 +15,7 @@ import numpy as np
 from rapidfuzz import fuzz
 
 from .config import (
-    OCR_FPS, SCENE_CHANGE_THRESHOLD, TECHNIQUE_KEYWORDS, sec_to_tick,
+    OCR_FPS, SCENE_CHANGE_THRESHOLD, TECHNIQUE_KEYWORDS, TRANSITION_KEYWORDS, sec_to_tick,
 )
 from .schemas import OCRHit
 
@@ -33,11 +33,14 @@ def _get_reader():
     return _reader
 
 
-# -------- 关键词倒排表 --------
+# -------- 关键词倒排表 (含转声词) --------
 def _build_keyword_index() -> Dict[str, str]:
     """返回 keyword_lower -> technique_name"""
     idx = {}
     for tech, kws in TECHNIQUE_KEYWORDS.items():
+        for kw in kws:
+            idx[kw.lower()] = tech
+    for tech, kws in TRANSITION_KEYWORDS.items():
         for kw in kws:
             idx[kw.lower()] = tech
     return idx

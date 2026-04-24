@@ -39,6 +39,23 @@ TECHNIQUE_KEYWORDS: Dict[str, List[str]] = {
 # ASR 引导词：与技巧词组合时也触发 (e.g. "听这个" + "强混")
 ASR_DEMO_TRIGGERS = ["听这个", "像这样", "示范", "demo", "听好"]
 
+# 转声示范关键词（命中则该候选为 transition_demo 类型，中心点必须是 passaggio）
+TRANSITION_KEYWORDS: Dict[str, List[str]] = {
+    "胸转假":   ["胸声转假声", "胸转假", "由胸到头", "chest to falsetto", "chest-falsetto"],
+    "头转胸":   ["头声转胸声", "头转胸", "falsetto to chest"],
+    "转混":     ["转混声", "换声", "换声点", "passaggio", "break", "flip"],
+    "强转弱":   ["强混转弱混", "belt to mix"],
+}
+
+# 转声检测阈值
+@dataclass
+class TransitionCfg:
+    min_semitone_jump: float = 5.0       # f0 跳动 ≥ 5 半音才算转声
+    window_ticks: int = 3                # 主 300ms 窗口内检测跳变
+    min_stable_before_ticks: int = 5     # 转前需 ≥ 0.5s 稳定发声
+    min_stable_after_ticks: int = 5      # 转后需 ≥ 0.5s 稳定发声
+    center_pick_tolerance_ticks: int = 5 # LLM 选 center 时距 transition_tick 不得超过 ±0.5s
+
 
 # =========================================================
 # 视频/音频
@@ -103,7 +120,11 @@ class CandidateCfg:
 # =========================================================
 @dataclass
 class SliceCfg:
-    pad_ticks: int = 20                  # 中心点前后各 2.0 秒 → 共 4s 切片
+    """统一 3 秒切片：中心点前后各 1.5 秒。
+    对“转声示范” (e.g. 胸声→假声)，中心点必须落在 passaggio tick 上，
+    这样 3s = 1.5s 转前 + 1.5s 转后，两阶段都被完整捕获。
+    """
+    pad_ticks: int = 15                  # 中心点前后各 1.5 秒 → 共 3s 切片
     out_video_codec: str = "h264_nvenc"  # 5060 NVENC
     out_audio_codec: str = "pcm_s16le"   # WAV
     out_audio_sr: int = 16000
@@ -178,4 +199,5 @@ class PipelineConfig:
     gate: AcousticGate = field(default_factory=AcousticGate)
     candidate: CandidateCfg = field(default_factory=CandidateCfg)
     slicing: SliceCfg = field(default_factory=SliceCfg)
+    transition: TransitionCfg = field(default_factory=TransitionCfg)
     paths: Paths = field(default_factory=Paths)

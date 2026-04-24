@@ -36,7 +36,7 @@ def run(video_path: Path, cfg: PipelineConfig) -> dict[str, Path]:
     asr_words = transcribe(audio, cfg.whisper, cfg.paths.asr_json)
     asr_hits = find_asr_triggers(asr_words)
 
-    vad_blocks = run_vad(audio, cfg.vad, cfg.paths.vad_json)
+    vad_blocks = run_vad(audio, cfg.vad, cfg.paths.vad_json, cfg.transition)
     apply_acoustic_gate(vad_blocks, cfg.gate)
 
     # ---- Stage 1: 按技巧分别构造候选 + 落到独立子目录 ----

@@ -12,7 +12,8 @@
 
 # 绝对规则 (违反任意一条 → 你的输出无效)
 
-R1. 你 **不得** 自行生成或推测任何时间戳。所有时间值必须 **完整复制** 自输入的 `subsequent_vad_blocks[*]` 边界。
+R1. 你 **不得** 自行生成或推测任何时间戳。所有时间值必须 **完整复制** 自输入的 `subsequent_vad_blocks[*]` 边界
+    或 `transition_anchor_tick`。
 R2. 你 **必须** 从 `constraints.must_pick_center_within` 列出的区间中选一个 [start, end]，
     `chosen_center_tick` 必须满足 `start <= chosen_center_tick <= end`。否则 decision 必须为 REJECT。
 R3. 当且仅当满足 **全部** 条件时，才允许 decision = ACCEPT：
@@ -20,15 +21,21 @@ R3. 当且仅当满足 **全部** 条件时，才允许 decision = ACCEPT：
     b) `subsequent_vad_blocks` 中 **至少存在一个** block 满足 `acoustic_features.is_valid_demo == true`；
     c) `subsequent_speech` 中 **不得出现** 否定/对照词（"错误"、"反例"、"不要这样"、"wrong"、"bad"）；
     d) 所选 block 的 `avg_hnr_db >= 8.0` 且 `pitch_stability >= 0.6`。
+    e) **如果 candidate_type == "transition_demo"**：所选 block 内 `transitions[]` 至少有一个 tick 落在
+       `must_pick_center_within` 区间内（即转声点真实存在），且 `chosen_center_tick` 必须就是该 transitions[*].tick。
 R4. 任何不确定 → REJECT。**宁可漏召，不可误召**。这是训练集，错样本比少样本代价高 100 倍。
 R5. 你 **只能** 输出一个 JSON 对象，不要 markdown，不要解释文字，不要 ```json``` 包裹。
 R6. `confidence` 必须 ≤ 你内心真实把握 - 0.1（自我惩罚，防过度自信）。
+R7. 切片固定为 **3 秒**：你只输出中心点，本地脚本会自动取 ±1.5s。所以中心点选择必须考虑：
+    - steady_demo：选 valid block 的 **中段**（避开起音弱齿与收尾），距 block 边界 ≥ 5 ticks 优先
+    - transition_demo：必须选 `transitions[*].tick`（转声点本身），3s 窗口才能覆盖"转前 1.5s + 转后 1.5s"
 
 # 拒绝原因枚举 (reject_reason 必须从此枚举中选)
 - "NO_VALID_DEMO_BLOCK"        : 没有 is_valid_demo=true 的 VAD 块
 - "NEGATIVE_CONTEXT_DETECTED"   : 上下文里出现了否定/反例词
 - "TRIGGER_TECHNIQUE_MISMATCH"  : 触发关键词与目标技巧不一致
 - "ACOUSTIC_BELOW_THRESHOLD"    : HNR 或 pitch_stability 不达标
+- "TRANSITION_NOT_FOUND"        : transition_demo 但 transitions[] 内无落在约束区间的转声点
 - "INSUFFICIENT_EVIDENCE"       : 证据不足以裁决
 
 # 输出 Schema (严格)
@@ -106,7 +113,7 @@ class Verdict(BaseModel):
     reject_reason: Optional[Literal[
         "NO_VALID_DEMO_BLOCK", "NEGATIVE_CONTEXT_DETECTED",
         "TRIGGER_TECHNIQUE_MISMATCH", "ACOUSTIC_BELOW_THRESHOLD",
-        "INSUFFICIENT_EVIDENCE",
+        "TRANSITION_NOT_FOUND", "INSUFFICIENT_EVIDENCE",
     ]] = None
     chosen_center_tick: Optional[int] = None
     chosen_vad_block: Optional[List[int]] = None

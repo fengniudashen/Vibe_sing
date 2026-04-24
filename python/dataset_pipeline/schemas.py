@@ -45,6 +45,9 @@ class VADBlock:
     avg_spectral_flatness: float = 0.0
     is_valid_demo: bool = False          # 通过 AcousticGate
     quality_score: float = 0.0
+    # 转声点：块内检测到的 passaggio tick 列表 (可能有多个)
+    # 每个元素: {"tick": int, "semitone_jump": float, "direction": "up"|"down"}
+    transitions: List[Dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -53,6 +56,10 @@ class CandidateEvent:
     candidate_id: str
     target_technique: str
     trigger_source: str                  # "ocr" | "asr" | "ocr+asr"
+    candidate_type: str = "steady_demo"   # "steady_demo" | "transition_demo"
+    # 转声示范专用：chosen_center_tick 必须 ±tol 范围内
+    transition_anchor_tick: Optional[int] = None
+    transition_tolerance_ticks: int = 5
     ocr_trigger: Optional[OCRHit] = None
     asr_trigger: Optional[ASRHit] = None
     subsequent_speech: List[ASRWord] = field(default_factory=list)
@@ -64,11 +71,23 @@ class CandidateEvent:
 
     def to_llm_payload(self) -> Dict[str, Any]:
         """精简版给 LLM，去掉冗余字段。"""
+        # 构造 must_pick_center_within 约束
+        if self.candidate_type == "transition_demo" and self.transition_anchor_tick is not None:
+            tol = self.transition_tolerance_ticks
+            must_pick = [[self.transition_anchor_tick - tol,
+                          self.transition_anchor_tick + tol]]
+        else:
+            must_pick = [
+                [b.start_tick, b.end_tick]
+                for b in self.subsequent_vad_blocks if b.is_valid_demo
+            ]
         return {
             "task": "adjudicate_vocal_demonstration",
             "candidate_id": self.candidate_id,
             "target_technique": self.target_technique,
+            "candidate_type": self.candidate_type,
             "trigger_source": self.trigger_source,
+            "transition_anchor_tick": self.transition_anchor_tick,
             "ocr_trigger": asdict(self.ocr_trigger) if self.ocr_trigger else None,
             "asr_trigger": asdict(self.asr_trigger) if self.asr_trigger else None,
             "subsequent_speech": [asdict(w) for w in self.subsequent_speech],
@@ -84,14 +103,14 @@ class CandidateEvent:
                         "avg_spectral_flatness": round(b.avg_spectral_flatness, 3),
                         "is_valid_demo": b.is_valid_demo,
                     },
+                    "transitions": b.transitions,
                 }
                 for b in self.subsequent_vad_blocks
             ],
             "constraints": {
-                "must_pick_center_within": [
-                    [b.start_tick, b.end_tick]
-                    for b in self.subsequent_vad_blocks if b.is_valid_demo
-                ],
+                "must_pick_center_within": must_pick,
+                "slice_total_seconds": 3.0,
+                "slice_pad_ticks_each_side": 15,
             },
         }
 
